@@ -1,0 +1,57 @@
+{
+  "name": "vidium-ml",
+  "scopeName": "source.vidium-ml",
+  "fileTypes": [
+    ".aml"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "name": "keyword.control.vidium-ml",
+      "match": "\\b(app)\\b"
+    },
+    {
+      "name": "string.quoted.double.vidium-ml",
+      "begin": "\"",
+      "end": "\""
+    },
+    {
+      "name": "string.quoted.single.vidium-ml",
+      "begin": "'",
+      "end": "'"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.vidium-ml",
+          "begin": "/\\*",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.vidium-ml"
+            }
+          },
+          "end": "\\*/",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.vidium-ml"
+            }
+          }
+        },
+        {
+          "begin": "//",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.whitespace.comment.leading.vidium-ml"
+            }
+          },
+          "end": "(?=$)",
+          "name": "comment.line.vidium-ml"
+        }
+      ]
+    }
+  }
+}

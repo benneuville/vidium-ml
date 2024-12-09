@@ -4,20 +4,20 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ArduinoMlGeneratedModule = exports.ArduinoMlGeneratedSharedModule = exports.ArduinoMlLanguageMetaData = void 0;
+exports.VidiumMLGeneratedModule = exports.VidiumMlGeneratedSharedModule = exports.VidiumMLLanguageMetaData = void 0;
 const ast_1 = require("./ast");
 const grammar_1 = require("./grammar");
-exports.ArduinoMlLanguageMetaData = {
-    languageId: 'arduino-ml',
+exports.VidiumMLLanguageMetaData = {
+    languageId: 'vidium-ml',
     fileExtensions: ['.aml'],
     caseInsensitive: false
 };
-exports.ArduinoMlGeneratedSharedModule = {
-    AstReflection: () => new ast_1.ArduinoMlAstReflection()
+exports.VidiumMlGeneratedSharedModule = {
+    AstReflection: () => new ast_1.VidiumMlAstReflection()
 };
-exports.ArduinoMlGeneratedModule = {
-    Grammar: () => (0, grammar_1.ArduinoMlGrammar)(),
-    LanguageMetaData: () => exports.ArduinoMlLanguageMetaData,
+exports.VidiumMLGeneratedModule = {
+    Grammar: () => (0, grammar_1.VidiumMLGrammar)(),
+    LanguageMetaData: () => exports.VidiumMLLanguageMetaData,
     parser: {}
 };
 //# sourceMappingURL=module.js.map

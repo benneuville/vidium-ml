@@ -1,17 +1,17 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 import { App } from '../language-server/generated/ast';
-import { ArduinoMlLanguageMetaData } from '../language-server/generated/module';
-import { createArduinoMlServices } from '../language-server/arduino-ml-module';
+import { VidiumMLLanguageMetaData } from '../language-server/generated/module';
+import { createVidiumMLServices } from '../language-server/vidium-ml-module';
 import { extractAstNode } from './cli-util';
 import { generateInoFile } from './generator';
 import { NodeFileSystem } from 'langium/node';
 
 export const generateAction = async (fileName: string, opts: GenerateOptions): Promise<void> => {
-    const services = createArduinoMlServices(NodeFileSystem).ArduinoMl;
+    const services = createVidiumMLServices(NodeFileSystem).VidiumML;
     const app = await extractAstNode<App>(fileName, services);
     const generatedFilePath = generateInoFile(app, fileName, opts.destination);
-    console.log(chalk.green(`Arduino code generated successfully: ${generatedFilePath}`));
+    console.log(chalk.green(`Python code generated successfully: ${generatedFilePath}`));
 };
 
 export type GenerateOptions = {
@@ -25,7 +25,7 @@ export default function(): void {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         .version(require('../../package.json').version);
 
-    const fileExtensions = ArduinoMlLanguageMetaData.fileExtensions.join(', ');
+    const fileExtensions = VidiumMLLanguageMetaData.fileExtensions.join(', ');
     program
         .command('generate')
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)

@@ -16,15 +16,15 @@ exports.generateAction = void 0;
 const chalk_1 = __importDefault(require("chalk"));
 const commander_1 = require("commander");
 const module_1 = require("../language-server/generated/module");
-const arduino_ml_module_1 = require("../language-server/arduino-ml-module");
+const vidium_ml_module_1 = require("../language-server/vidium-ml-module");
 const cli_util_1 = require("./cli-util");
 const generator_1 = require("./generator");
 const node_1 = require("langium/node");
 const generateAction = (fileName, opts) => __awaiter(void 0, void 0, void 0, function* () {
-    const services = (0, arduino_ml_module_1.createArduinoMlServices)(node_1.NodeFileSystem).ArduinoMl;
+    const services = (0, vidium_ml_module_1.createVidiumMLServices)(node_1.NodeFileSystem).VidiumML;
     const app = yield (0, cli_util_1.extractAstNode)(fileName, services);
     const generatedFilePath = (0, generator_1.generateInoFile)(app, fileName, opts.destination);
-    console.log(chalk_1.default.green(`Arduino code generated successfully: ${generatedFilePath}`));
+    console.log(chalk_1.default.green(`Python code generated successfully: ${generatedFilePath}`));
 });
 exports.generateAction = generateAction;
 function default_1() {
@@ -32,7 +32,7 @@ function default_1() {
     program
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         .version(require('../../package.json').version);
-    const fileExtensions = module_1.ArduinoMlLanguageMetaData.fileExtensions.join(', ');
+    const fileExtensions = module_1.VidiumMLLanguageMetaData.fileExtensions.join(', ');
     program
         .command('generate')
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)

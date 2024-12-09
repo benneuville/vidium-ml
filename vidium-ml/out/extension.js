@@ -57,14 +57,14 @@ function startLanguageClient(context) {
     context.subscriptions.push(fileSystemWatcher);
     // Options to control the language client
     const clientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'arduino-ml' }],
+        documentSelector: [{ scheme: 'file', language: 'vidium-ml' }],
         synchronize: {
             // Notify the server about file changes to files contained in the workspace
             fileEvents: fileSystemWatcher
         }
     };
     // Create the language client and start the client.
-    const client = new node_1.LanguageClient('arduino-ml', 'ArduinoML', serverOptions, clientOptions);
+    const client = new node_1.LanguageClient('vidium-ml', 'VidiumMl', serverOptions, clientOptions);
     // Start the client. This will also launch the server
     client.start();
     return client;

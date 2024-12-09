@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ArduinoMlValidator = exports.registerValidationChecks = void 0;
+exports.VidiumMLValidator = exports.registerValidationChecks = void 0;
 /**
  * Register custom validation checks.
  */
 function registerValidationChecks(services) {
     const registry = services.validation.ValidationRegistry;
-    const validator = services.validation.ArduinoMlValidator;
+    const validator = services.validation.VidiumMLValidator;
     const checks = {
         App: validator.checkNothing
     };
@@ -16,7 +16,7 @@ exports.registerValidationChecks = registerValidationChecks;
 /**
  * Implementation of custom validations.
  */
-class ArduinoMlValidator {
+class VidiumMLValidator {
     checkNothing(app, accept) {
         if (app.name) {
             const firstChar = app.name.substring(0, 1);
@@ -26,5 +26,5 @@ class ArduinoMlValidator {
         }
     }
 }
-exports.ArduinoMlValidator = ArduinoMlValidator;
-//# sourceMappingURL=arduino-ml-validator.js.map
+exports.VidiumMLValidator = VidiumMLValidator;
+//# sourceMappingURL=vidium-ml-validator.js.map

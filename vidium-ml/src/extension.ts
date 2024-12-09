@@ -38,7 +38,7 @@ function startLanguageClient(context: vscode.ExtensionContext): LanguageClient {
 
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'arduino-ml' }],
+        documentSelector: [{ scheme: 'file', language: 'vidium-ml' }],
         synchronize: {
             // Notify the server about file changes to files contained in the workspace
             fileEvents: fileSystemWatcher
@@ -47,8 +47,8 @@ function startLanguageClient(context: vscode.ExtensionContext): LanguageClient {
 
     // Create the language client and start the client.
     const client = new LanguageClient(
-        'arduino-ml',
-        'ArduinoML',
+        'vidium-ml',
+        'VidiumMl',
         serverOptions,
         clientOptions
     );

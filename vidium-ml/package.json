@@ -1,6 +1,6 @@
 {
-    "name": "ArduinoML",
-    "displayName": "ArduinoML",
+    "name": "VidiumML",
+    "displayName": "VidiumML",
     "description": "Please enter a brief description here",
     "version": "0.0.1",
     "engines": {
@@ -11,19 +11,19 @@
     ],
     "contributes": {
         "languages": [{
-            "id": "arduino-ml",
-            "aliases": ["ArduinoML", "arduino-ml"],
+            "id": "vidium-ml",
+            "aliases": ["VidiumML", "vidium-ml"],
             "extensions": [".aml"],
             "configuration": "./language-configuration.json"
         }],
         "grammars": [{
-            "language": "arduino-ml",
-            "scopeName": "source.arduino-ml",
-            "path": "./syntaxes/arduino-ml.tmLanguage.json"
+            "language": "vidium-ml",
+            "scopeName": "source.vidium-ml",
+            "path": "./syntaxes/vidium-ml.tmLanguage.json"
         }]
     },
     "activationEvents": [
-        "onLanguage:arduino-ml"
+        "onLanguage:vidium-ml"
     ],
     "files": [
         "bin",
@@ -31,7 +31,7 @@
         "src"
     ],
     "bin": {
-        "arduino-ml-cli": "./bin/cli"
+        "vidium-ml-cli": "./bin/cli"
     },
     "main": "./out/extension.js",
     "scripts": {
