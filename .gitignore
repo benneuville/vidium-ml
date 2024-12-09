@@ -1,1 +1,4 @@
 vidium-ml/node_modules/
+
+.venv
+api_sample/videos_sample/*
