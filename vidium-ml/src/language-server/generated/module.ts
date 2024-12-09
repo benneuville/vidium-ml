@@ -4,21 +4,21 @@
  ******************************************************************************/
 
 import { LangiumGeneratedServices, LangiumGeneratedSharedServices, LangiumSharedServices, LangiumServices, LanguageMetaData, Module } from 'langium';
-import { ArduinoMlAstReflection } from './ast';
-import { ArduinoMlGrammar } from './grammar';
+import { VidiumMlAstReflection } from './ast';
+import { VidiumMLGrammar } from './grammar';
 
-export const ArduinoMlLanguageMetaData: LanguageMetaData = {
-    languageId: 'arduino-ml',
+export const VidiumMLLanguageMetaData: LanguageMetaData = {
+    languageId: 'vidium-ml',
     fileExtensions: ['.aml'],
     caseInsensitive: false
 };
 
-export const ArduinoMlGeneratedSharedModule: Module<LangiumSharedServices, LangiumGeneratedSharedServices> = {
-    AstReflection: () => new ArduinoMlAstReflection()
+export const VidiumMlGeneratedSharedModule: Module<LangiumSharedServices, LangiumGeneratedSharedServices> = {
+    AstReflection: () => new VidiumMlAstReflection()
 };
 
-export const ArduinoMlGeneratedModule: Module<LangiumServices, LangiumGeneratedServices> = {
-    Grammar: () => ArduinoMlGrammar(),
-    LanguageMetaData: () => ArduinoMlLanguageMetaData,
+export const VidiumMLGeneratedModule: Module<LangiumServices, LangiumGeneratedServices> = {
+    Grammar: () => VidiumMLGrammar(),
+    LanguageMetaData: () => VidiumMLLanguageMetaData,
     parser: {}
 };

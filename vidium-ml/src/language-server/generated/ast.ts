@@ -4,48 +4,11 @@
  ******************************************************************************/
 
 /* eslint-disable */
-import { AstNode, AbstractAstReflection, Reference, ReferenceInfo, TypeMetaData } from 'langium';
-
-export type Brick = Actuator | Sensor;
-
-export const Brick = 'Brick';
-
-export function isBrick(item: unknown): item is Brick {
-    return reflection.isInstance(item, Brick);
-}
-
-export interface Action extends AstNode {
-    readonly $container: State;
-    readonly $type: 'Action';
-    actuator: Reference<Actuator>
-    value: Signal
-}
-
-export const Action = 'Action';
-
-export function isAction(item: unknown): item is Action {
-    return reflection.isInstance(item, Action);
-}
-
-export interface Actuator extends AstNode {
-    readonly $container: App;
-    readonly $type: 'Actuator';
-    name: string
-    outputPin: number
-}
-
-export const Actuator = 'Actuator';
-
-export function isActuator(item: unknown): item is Actuator {
-    return reflection.isInstance(item, Actuator);
-}
+import { AstNode, AbstractAstReflection, ReferenceInfo, TypeMetaData } from 'langium';
 
 export interface App extends AstNode {
     readonly $type: 'App';
-    bricks: Array<Brick>
-    initial: Reference<State>
     name: string
-    states: Array<State>
 }
 
 export const App = 'App';
@@ -54,82 +17,18 @@ export function isApp(item: unknown): item is App {
     return reflection.isInstance(item, App);
 }
 
-export interface Sensor extends AstNode {
-    readonly $container: App;
-    readonly $type: 'Sensor';
-    inputPin: number
-    name: string
-}
-
-export const Sensor = 'Sensor';
-
-export function isSensor(item: unknown): item is Sensor {
-    return reflection.isInstance(item, Sensor);
-}
-
-export interface Signal extends AstNode {
-    readonly $container: Action | Transition;
-    readonly $type: 'Signal';
-    value: string
-}
-
-export const Signal = 'Signal';
-
-export function isSignal(item: unknown): item is Signal {
-    return reflection.isInstance(item, Signal);
-}
-
-export interface State extends AstNode {
-    readonly $container: App;
-    readonly $type: 'State';
-    actions: Array<Action>
-    name: string
-    transition: Transition
-}
-
-export const State = 'State';
-
-export function isState(item: unknown): item is State {
-    return reflection.isInstance(item, State);
-}
-
-export interface Transition extends AstNode {
-    readonly $container: State;
-    readonly $type: 'Transition';
-    next: Reference<State>
-    sensor: Reference<Sensor>
-    value: Signal
-}
-
-export const Transition = 'Transition';
-
-export function isTransition(item: unknown): item is Transition {
-    return reflection.isInstance(item, Transition);
-}
-
-export interface ArduinoMlAstType {
-    Action: Action
-    Actuator: Actuator
+export interface VidiumMlAstType {
     App: App
-    Brick: Brick
-    Sensor: Sensor
-    Signal: Signal
-    State: State
-    Transition: Transition
 }
 
-export class ArduinoMlAstReflection extends AbstractAstReflection {
+export class VidiumMlAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Action', 'Actuator', 'App', 'Brick', 'Sensor', 'Signal', 'State', 'Transition'];
+        return ['App'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
-            case Actuator:
-            case Sensor: {
-                return this.isSubtype(Brick, supertype);
-            }
             default: {
                 return false;
             }
@@ -139,16 +38,6 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
-            case 'Action:actuator': {
-                return Actuator;
-            }
-            case 'App:initial':
-            case 'Transition:next': {
-                return State;
-            }
-            case 'Transition:sensor': {
-                return Sensor;
-            }
             default: {
                 throw new Error(`${referenceId} is not a valid reference id.`);
             }
@@ -157,23 +46,6 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
 
     getTypeMetaData(type: string): TypeMetaData {
         switch (type) {
-            case 'App': {
-                return {
-                    name: 'App',
-                    mandatory: [
-                        { name: 'bricks', type: 'array' },
-                        { name: 'states', type: 'array' }
-                    ]
-                };
-            }
-            case 'State': {
-                return {
-                    name: 'State',
-                    mandatory: [
-                        { name: 'actions', type: 'array' }
-                    ]
-                };
-            }
             default: {
                 return {
                     name: type,
@@ -184,4 +56,4 @@ export class ArduinoMlAstReflection extends AbstractAstReflection {
     }
 }
 
-export const reflection = new ArduinoMlAstReflection();
+export const reflection = new VidiumMlAstReflection();

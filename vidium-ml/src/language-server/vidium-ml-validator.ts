@@ -1,14 +1,14 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
-import { ArduinoMlAstType, App } from './generated/ast';
-import type { ArduinoMlServices } from './arduino-ml-module';
+import { VidiumMlAstType, App } from './generated/ast';
+import type { VidiumMLServices } from './vidium-ml-module';
 
 /**
  * Register custom validation checks.
  */
-export function registerValidationChecks(services: ArduinoMlServices) {
+export function registerValidationChecks(services: VidiumMLServices) {
     const registry = services.validation.ValidationRegistry;
-    const validator = services.validation.ArduinoMlValidator;
-    const checks: ValidationChecks<ArduinoMlAstType> = {
+    const validator = services.validation.VidiumMLValidator;
+    const checks: ValidationChecks<VidiumMlAstType> = {
         App: validator.checkNothing
     };
     registry.register(checks, validator);
@@ -17,7 +17,7 @@ export function registerValidationChecks(services: ArduinoMlServices) {
 /**
  * Implementation of custom validations.
  */
-export class ArduinoMlValidator {
+export class VidiumMLValidator {
 
     checkNothing(app: App, accept: ValidationAcceptor): void {
         if (app.name) {
