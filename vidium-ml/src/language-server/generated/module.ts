@@ -9,7 +9,7 @@ import { VidiumMLGrammar } from './grammar';
 
 export const VidiumMLLanguageMetaData: LanguageMetaData = {
     languageId: 'vidium-ml',
-    fileExtensions: ['.aml'],
+    fileExtensions: ['.vml'],
     caseInsensitive: false
 };
 

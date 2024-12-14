@@ -2,7 +2,7 @@
   "name": "vidium-ml",
   "scopeName": "source.vidium-ml",
   "fileTypes": [
-    ".aml"
+    ".vml"
   ],
   "patterns": [
     {
@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.vidium-ml",
-      "match": "\\b(app)\\b"
+      "match": "\\b(asset|ASSETS|clip|duration|layer|LAYERS|offset|rectangle|sequence|SEQUENCES|timeline|TIMELINE|video)\\b|\\b(c=|h=|w=|x=|y=)\\B"
     },
     {
       "name": "string.quoted.double.vidium-ml",

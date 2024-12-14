@@ -3,7 +3,7 @@
     "languages": [{
         "id": "vidium-ml",
         "grammar": "src/language-server/vidium-ml.langium",
-        "fileExtensions": [".aml"],
+        "fileExtensions": [".vml"],
         "textMate": {
             "out": "syntaxes/vidium-ml.tmLanguage.json"
         }
