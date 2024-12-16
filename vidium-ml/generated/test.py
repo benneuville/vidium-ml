@@ -9,8 +9,8 @@ asset_rect1 = mv.layer.Rectangle(
                     size=(100, 200), 
                     color=(255, 0, 0),
                 )
-asset_clip1 = mv.layer.Video("api_sample/video_sample/sample3.mp4")
-
+asset_clip1 = mv.layer.Video("../api_sample/video_sample/sample3.mp4")
+asset_clip1 = mv.trim(asset_clip1, start_times=[1], end_times=[5])
 
 # Define Layers
 layer_layer1 = mv.layer.Composition(
@@ -30,5 +30,5 @@ scene.add_layer(layer_layer1)
 scene.add_layer(layer_layer2)
 
 # Export Video
-scene.write_video('output.mp4')
+scene.write_video('generated_video/maVideo.mp4')
     

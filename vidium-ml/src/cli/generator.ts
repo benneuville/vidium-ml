@@ -55,8 +55,7 @@ scene = mv.layer.Composition(size=(1920, 1080), duration=60)
                     assetCode += `${assetName} = mv.trim(${assetName}, start_times=[0.0], end_times=[${clip.to}])`;
                 }
                 else if (clip.from !== undefined){
-                    assetCode += `${assetName}_duration = ${assetName}".duration"\n`;
-                    assetCode += `${assetName} = mv.trim(${assetName}, start_times=[${clip.from}], end_times=[${assetName}_duration])`;
+                    assetCode += `${assetName} = mv.trim(${assetName}, start_times=[${clip.from}], end_times=[${assetName}.duration])`;
                 }
                 //there is no time limit, so we don't need to trim
                 break;
