@@ -52,7 +52,7 @@ Rectangle :
     'rectangle' ':' 'w='width=INT 'h='height=INT 'c='color=STRING;
 
 Clip :
-    'clip' ':' path=STRING;
+    'clip' ':' path=STRING ('from' ':' from=INT)? ('to' ':' to=INT)?;
 
 hidden terminal WS: /\s+/;
 terminal ID: /[_a-zA-Z][\w_]*/;
