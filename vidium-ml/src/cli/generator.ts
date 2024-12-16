@@ -104,7 +104,7 @@ scene = mv.layer.Composition(size=(1920, 1080), duration=60)
     // Export video
     fileNode.append(`
 # Export Video
-scene.write_video('output.mp4')
+scene.write_video('generated_video/` + video.name + `.mp4')
     `);
 }
 
