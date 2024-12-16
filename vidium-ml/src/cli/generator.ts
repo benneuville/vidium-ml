@@ -47,18 +47,18 @@ scene = mv.layer.Composition(size=(1920, 1080), duration=60)
                 break;
             case 'Clip':
                 const clip = asset.assetItem as Clip;
-                assetCode = `${assetName} = mv.layer.Video("${clip.path}",)\n`;
-                console.log(clip.from, clip.to);
-                if (clip.from !== null && clip.to !== null) {
-                    console.log('here');
+                assetCode = `${assetName} = mv.layer.Video("${clip.path}")\n`;
+                if (clip.from !== undefined && clip.to !== undefined) {
                     assetCode += `${assetName} = mv.trim(${assetName}, start_times=[${clip.from}], end_times=[${clip.to}])`;
                 }
-                else if (clip.to !== null){
-                    assetCode.concat(`${assetName} = mv.trim(${assetName}, start_time[0.0], end_time[${clip.to}])`);
+                else if (clip.to !== undefined){
+                    assetCode += `${assetName} = mv.trim(${assetName}, start_times=[0.0], end_times=[${clip.to}])`;
                 }
-                else if (clip.from !== null){
-                    assetCode.concat(`${assetName} = mv.trim(${assetName}, start_time[${clip.from}])`);
+                else if (clip.from !== undefined){
+                    assetCode += `${assetName}_duration = ${assetName}".duration"\n`;
+                    assetCode += `${assetName} = mv.trim(${assetName}, start_times=[${clip.from}], end_times=[${assetName}_duration])`;
                 }
+                //there is no time limit, so we don't need to trim
                 break;
         }
 

@@ -9,8 +9,8 @@ asset_rect1 = mv.layer.Rectangle(
                     size=(100, 200), 
                     color=(255, 0, 0),
                 )
-asset_clip1 = mv.layer.Video("api_sample/video_sample/sample1.mp4",)
-asset_clip1 = mv.trim(asset_clip1, start_times=[2], end_times=[6])
+asset_clip1 = mv.layer.Video("api_sample/video_sample/sample3.mp4")
+
 
 # Define Layers
 layer_layer1 = mv.layer.Composition(

@@ -4,9 +4,7 @@ video maVideo {
         rectangle : w=100 h=200 c="RED"
     }
     asset clip1: x=30 y=40 {
-        clip : "api_sample/video_sample/sample1.mp4"
-        from : 2
-        to : 6
+        clip : "api_sample/video_sample/sample3.mp4"
     }
 
     LAYERS

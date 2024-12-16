@@ -32,9 +32,9 @@ export function isAssetItem(item: unknown): item is AssetItem {
 export interface Clip extends AstNode {
     readonly $container: AssetItem;
     readonly $type: 'Clip';
-    from: number
+    from?: number
     path: string
-    to: number
+    to?: number
 }
 
 export const Clip = 'Clip';
