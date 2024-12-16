@@ -41,15 +41,24 @@ scene = mv.layer.Composition(size=(1920, 1080), duration=60)
             case 'Rectangle':
                 const rectangle = asset.assetItem as Rectangle;
                 assetCode = `${assetName} = mv.layer.Rectangle(
-    size=(${rectangle.width}, ${rectangle.height}), 
-    color=${compileColor(rectangle.color)},
-)`;
+                    size=(${rectangle.width}, ${rectangle.height}), 
+                    color=${compileColor(rectangle.color)},
+                )`;
                 break;
             case 'Clip':
                 const clip = asset.assetItem as Clip;
-                assetCode = `${assetName} = mv.layer.Video(
-    "${clip.path}",
-)`;
+                assetCode = `${assetName} = mv.layer.Video("${clip.path}",)\n`;
+                console.log(clip.from, clip.to);
+                if (clip.from !== null && clip.to !== null) {
+                    console.log('here');
+                    assetCode += `${assetName} = mv.trim(${assetName}, start_times=[${clip.from}], end_times=[${clip.to}])`;
+                }
+                else if (clip.to !== null){
+                    assetCode.concat(`${assetName} = mv.trim(${assetName}, start_time[0.0], end_time[${clip.to}])`);
+                }
+                else if (clip.from !== null){
+                    assetCode.concat(`${assetName} = mv.trim(${assetName}, start_time[${clip.from}])`);
+                }
                 break;
         }
 
