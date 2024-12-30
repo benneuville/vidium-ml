@@ -4,6 +4,6 @@ vidium-ml/node_modules/
 api_sample/videos_sample/*
 vmlenv
 vmlenv/*
-vidium-ml/generated_videos/*
+vidium-ml/generated_video/*
 api_sample/video_sample/*
 .idea
