@@ -22,9 +22,13 @@ The DSL objective is to create pipelines for generating structured videos from t
 2. Import the template and fill the placeholders with assets.
 3. Generate the video.
 
-This gives a common structure among the different videos created.
+This gives a common structure among the different videos created and enables automation of the video creation process.
 
-### Scenarios
+## Assumption
+Since the DSL is used to create pipelines for video creation, the users are expected to have a basic understanding of video editing and automation tools.
+Its assumed that the users of the DSL are familiar with automation tools and have basic knowledge of the basic bricks of programming (like variables, loops, etc).
+
+## Scenarios
 **Company standard videos**  
 A company wants to create a video following a standard structure for each of its products.
 Following the same structure, the company can create a template for the videos and then customize each video with assets related to each product.
