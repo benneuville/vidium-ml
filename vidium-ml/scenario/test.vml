@@ -1,0 +1,136 @@
+video maVideo {
+    ASSETS
+    asset rect1: x=10 y=20 {
+        rectangle : w=100 h=200 c="RED"
+    }
+    asset clip1: x=30 y=40 {
+        clip : "../api_sample/video_sample/sample0.mp4"
+    }
+
+    LAYERS
+    layer layer1 {
+        rect1
+        duration 10
+    }
+    layer layer2 {
+        clip1
+        layer1 IN Enterprise.json
+        duration 20
+    }
+
+    SEQUENCES
+    sequence sequence1 : 20 {
+         layer1
+         layer2
+    }
+
+    TIMELINE
+    timeline timeline1 {
+        sequence1
+    }
+}
+
+
+# Define the assets
+PoceRouge:
+    CERCLE: position=TopRight color=red
+    RECTANGLE: position=TopLeft color=red
+
+# Define the templates
+PoceTemplate: $color=blue
+    CERCLE: position=TopRight color=$color
+    RECTANGLE: position=TopLeft color=$color
+
+Logo: $couleur2=bleu
+    LesPoces:
+        PoceBleu:
+        PoceTemplate: $color=red
+    LesAutresPoces:
+        PoceTemplate: $color=blue
+        PoceTemplate: $color=$couleur2 declared as DernierPoce
+
+ # var
+ maincolor=#000
+ secondaryColor=#222
+
+ Logo:
+     LesPoces:
+         PoceBleu:
+         PoceTemplate: color=maincolor
+     LesAutresPoces:
+         PoceTemplate: color=secondaryColor
+         PoceTemplate: color=secondaryColor declared as DernierPoce
+
+Logo: $couleur2=bleu
+    LesPoces:
+        PoceBleu:
+        PoceTemplate: $color=red
+    LesAutresPoces:
+        PoceTemplate: $color=blue
+        PoceTemplate: $color=$couleur2 declared as DernierPoce
+
+
+Logo contient poce avec color en blue
+Logo2 copie Logo et modifie DernierPoce avec color en Red
+
+
+# Usage
+>Logo                               // Logo avec poce couleur rouge et l'autre avec couleur blue
+>Logo>Poce: $color=green            // Logo avec poce couleur vert
+>Poce                               // Poce avec couleur bleu
+>Poce: $color=red                   // Poce avec couleur rouge
+>Poce
+
+Logo avec DernierPoce.color devient noir
+
+# Usage
+Logo                                    // Logo avec poce couleur rouge et l'autre avec couleur blue
+Logo avec Poce.color devient green      // Logo avec poce couleur vert
+Poce                                    // Poce avec couleur bleu
+Poce avec color devient red        // Poce avec couleur rouge
+
+
+########################################################
+# Define the assets
+
+# Template
+PoceRouge: $specialColor=red
+    CERCLE: position=TopRight color=$specialColor
+    RECTANGLE: position=TopLeft color=$specialColor
+
+Logo:
+    LesPoces:
+        PoceRouge:
+        PoceRouge:
+    LesAutresPoces:
+        PoceRouge: specialColor=blue
+        PoceRouge: specialColor=blue
+
+
+#########################################################
+
+# Template
+Template PoceRouge avec specificites : specialColor=red
+    CERCLE parametré avec position=TopRight et color=specialColor
+    RECTANGLE parametré avec position=TopLeft et color=specialColor
+
+# Layers
+Logo composé de
+    LesPoces composé de PoceRouge et PoceRouge
+    LesAutresPoces composé de PoceRouge specialisé comme specialColor=blue et PoceRouge specialisé comme specialColor=blue
+
+Logo composé de
+    LesPoces composé de
+        PoceRouge
+        PoceRouge specialisé comme specialColor=blue
+    LesAutresPoces composé de
+        PoceRouge specialisé comme specialColor=yellow
+        PoceRouge specialisé comme specialColor=green
+
+Logo composé de
+    LesPoces composé de
+        PoceRouge
+        PoceRouge specialisé comme specialColor=blue
+    LesAutresPoces composé de
+        PoceRouge specialisé comme specialColor=yellow
+        PoceRouge specialisé comme specialColor=noir
