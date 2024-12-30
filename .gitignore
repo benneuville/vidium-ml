@@ -2,3 +2,8 @@ vidium-ml/node_modules/
 /vidium-ml/out/
 .venv
 api_sample/videos_sample/*
+vmlenv
+vmlenv/*
+vidium-ml/generated_videos/*
+api_sample/video_sample/*
+.idea
