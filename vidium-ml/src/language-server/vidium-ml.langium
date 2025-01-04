@@ -1,58 +1,102 @@
 grammar VidiumML
 
-entry Video:
-	'video' name=ID '{'
-	    'ASSETS'
-	    assets+=AssetItem
-        (assets+=AssetItem)*
+entry Document:
+    (AssetCreation | Template | Pipeline);
 
-        'LAYERS'
-        layers+=Layer
-        (layers+=Layer)*
+// ===========
+//  PIPELINE
+// ===========
 
-        'SEQUENCES'
-        sequences+=Sequence
-        (sequences+=Sequence)*
-
-        'TIMELINE'
-        timelines+=TimeLine
-        (timelines+=TimeLine)*
-
-	'}';
-
-TimeLine:
-    'timeline' name=ID '{'
-        composition+=[Sequence:ID]+ // References to Sequence
+Pipeline:
+    'pipeline' '{'
+        'values' '=' valuesPath=STRING
+        'template' '=' templatePath=STRING
+        'export' 'as' exportPath=STRING
     '}';
 
-Sequence:
-    'sequence' name=ID ':' duration=INT '{'
-        composition+=[Asset:ID]+ // References to Asset
+// ===========
+//  TEMPLATE
+// ============
+
+Template:
+    'template' '{'
+        elements+=TemplateElement*
     '}';
 
-Layer:
-    'layer' name=ID '{'
-        composition+=[Asset:ID]+ // References to concrete Asset (Layer or AssetItem)
-        timeSpan=TimeSpan
+TemplateElement:
+    Placeholder | TemplateComposition;
+
+Placeholder:
+    '[' name=STRING ']' duration=INT?;
+
+TemplateComposition:
+    '(' left=TemplateElement 'and' right=TemplateElement ')';
+
+// TODO : Composition of placeholders
+
+// =================
+//  ASSETS CREATION
+// =================
+
+AssetCreation:
+	(videos+=VideoAsset | images+=ImageAsset | customs+=CustomAsset)*;
+
+VideoAsset:
+    'new' 'video' 'named' name=ID '{'
+        elements+=AssetElement*
     '}';
 
-TimeSpan:
-    'duration' duration=INT
-    ('offset' offset=INT)?;
+ImageAsset:
+    'new' 'image' 'named' name=ID '{'
+        elements+=AssetElement*
+    '}';
+
+CustomAsset:
+    'new' 'custom' 'named' name=ID '{'
+        elements+=AssetElement*
+    '}';
+
+// ==============
+//  COMPOSITION
+// ==============
+
+AssetElement:
+    (Asset | AssetComposition);
+
+AssetComposition:
+    '(' left=AssetElement 'and' right=AssetElement ')';
+
+// ===================
+//  ASSETS DEFINITION
+// ===================
 
 Asset:
-    (AssetItem | Layer);
+    (DefineAsset | ReferenceAsset | AssetItem);
 
-AssetItem :
-    'asset' name=ID ':' 'x='pos_x=INT 'y='pos_y=INT '{'
-        assetItem=(Rectangle | Clip)
-    '}';
+DefineAsset:
+    'define' name=ID 'as' item=AssetItem;
+
+ReferenceAsset:
+    ('before' reference+=[DefineAsset:ID] 'set' | 'after' reference+=[DefineAsset:ID] 'set') item=AssetItem;
+
+AssetItem:
+    Rectangle | Clip | Image | Text;
 
 Rectangle :
-    'rectangle' ':' 'w='width=INT 'h='height=INT 'c='color=STRING;
+    'rectangle' 'with' 'dimensions' width=INT 'per' height=INT 'color' color=STRING;
+
+Text :
+    'text' text=STRING;
 
 Clip :
-    'clip' ':' path=STRING ('from' ':' from=INT)? ('to' ':' to=INT)?;
+    'clip' path=STRING ('from' from=INT)? ('to' to=INT)?;
+
+Image :
+    'image' path=STRING;
+
+// ===========
+//  TERMINALS
+// ============
 
 hidden terminal WS: /\s+/;
 terminal ID: /[_a-zA-Z][\w_]*/;

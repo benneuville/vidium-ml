@@ -1,0 +1,13 @@
+new video named maVideoAsset {
+    clip "sample0" from 0 to 2
+}
+
+new image named monImageAsset {
+    image "../../api_sample/image_sample/sid.png"
+}
+
+new custom named textIntro {
+    define ref1 as rectangle with dimensions 200 per 300 color "red"
+    text "this is intro"
+    before ref1 set rectangle with dimensions 200 per 300 color "blue"
+}

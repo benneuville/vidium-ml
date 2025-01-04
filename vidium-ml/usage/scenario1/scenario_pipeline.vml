@@ -1,0 +1,5 @@
+pipeline {
+    values = "path/to/values.json"
+    template = "path/to/template.vml"
+    export as "maVideo.mp4" // (must add the index of values array to the name)
+}

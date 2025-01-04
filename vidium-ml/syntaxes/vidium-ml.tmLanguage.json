@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.vidium-ml",
-      "match": "\\b(asset|ASSETS|clip|duration|from|layer|LAYERS|offset|rectangle|sequence|SEQUENCES|timeline|TIMELINE|to|video)\\b|\\b(c=|h=|w=|x=|y=)\\B"
+      "match": "\\b(after|and|as|before|clip|color|custom|define|dimensions|export|from|image|named|new|per|pipeline|rectangle|set|template|text|to|values|video|with)\\b"
     },
     {
       "name": "string.quoted.double.vidium-ml",

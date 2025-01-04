@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { Video } from '../language-server/generated/ast';
+import {Document} from '../language-server/generated/ast';
 import { VidiumMLLanguageMetaData } from '../language-server/generated/module';
 import { createVidiumMLServices } from '../language-server/vidium-ml-module';
 import { extractAstNode } from './cli-util';
@@ -9,8 +9,8 @@ import { NodeFileSystem } from 'langium/node';
 
 export const generateAction = async (fileName: string, opts: GenerateOptions): Promise<void> => {
     const services = createVidiumMLServices(NodeFileSystem).VidiumML;
-    const video = await extractAstNode<Video>(fileName, services);
-    const generatedFilePath = generatePythonFile(video, fileName, opts.destination);
+    const document = await extractAstNode<Document>(fileName, services);
+    const generatedFilePath = generatePythonFile(document, fileName, opts.destination);
     console.log(chalk.green(`Python code generated successfully: ${generatedFilePath}`));
 };
 

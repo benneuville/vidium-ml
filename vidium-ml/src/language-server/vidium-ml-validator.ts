@@ -1,5 +1,5 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
-import { VidiumMlAstType, Video } from './generated/ast';
+import {VidiumMlAstType, AssetCreation} from './generated/ast';
 import type { VidiumMLServices } from './vidium-ml-module';
 
 /**
@@ -9,7 +9,7 @@ export function registerValidationChecks(services: VidiumMLServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.VidiumMLValidator;
     const checks: ValidationChecks<VidiumMlAstType> = {
-        Video: validator.checkNothing
+        AssetCreation: validator.checkNothing
     };
     registry.register(checks, validator);
 }
@@ -19,13 +19,8 @@ export function registerValidationChecks(services: VidiumMLServices) {
  */
 export class VidiumMLValidator {
 
-    checkNothing(video: Video, accept: ValidationAcceptor): void {
-        if (video.name) {
-            const firstChar = video.name.substring(0, 1);
-            if (firstChar.toUpperCase() !== firstChar) {
-                accept('warning', 'App name should start with a capital.', { node: video, property: 'name' });
-            }
-        }
+    checkNothing(assetCreation: AssetCreation, accept: ValidationAcceptor): void {
+        // This is a dummy validation that does nothing.
     }
 
 }
