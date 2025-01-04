@@ -8,8 +8,9 @@ text monTexteAdditionnel {
   text "this is outro" position bottom parameter X parameter Y
 }
 (exported as monTextAdditionnel.vlm inside the assets folder)
-text maJolieImage {
-  text "this is outro" position bottom parameter X parameter Y
+image maJolieImage {
+  image "path/to/originalImage"
+  asset monTexteAdditionnel
 }
 (exported as maJolieImage.jpg inside the assets folder)
 
