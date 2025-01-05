@@ -3,7 +3,7 @@ import {CompositeGeneratorNode, toString} from 'langium';
 import path from 'path';
 import {AssetCreation, Document, Pipeline, Template} from '../language-server/generated/ast';
 import {extractDestinationAndName} from './cli-util';
-import {compileAssetCreation} from "./compilers/AssetCreationCompiler";
+import {generateAssetFiles} from "./compilers/AssetCreationCompiler";
 import {compilePipeline} from "./compilers/PipelineCompiler";
 import {compileTemplate} from "./compilers/TemplateCompiler";
 
@@ -15,7 +15,7 @@ export function generatePythonFile(document: Document, filePath: string, destina
 
     switch (document.$type) {
         case 'AssetCreation': {
-            compileAssetCreation(document as AssetCreation, fileNode);
+            generateAssetFiles(document as AssetCreation, "./");
             break;
         }
         case 'Pipeline': {
@@ -30,8 +30,6 @@ export function generatePythonFile(document: Document, filePath: string, destina
             throw new Error(`Unexpected root node type`);
         }
     }
-
-
 
     if (!fs.existsSync(data.destination)) {
         fs.mkdirSync(data.destination, {recursive: true});
