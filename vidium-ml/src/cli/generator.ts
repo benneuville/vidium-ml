@@ -24,14 +24,14 @@ function compile(video: Video, fileNode: CompositeGeneratorNode): void {
 
     // Create composition
     fileNode.append('# Create composition', NL);
-    fileNode.append('scene = mv.layer.Composition(size=(1920, 1080), duration=60)', NL, NL);
+    fileNode.append('scene = mv.layer.Composition(size=(1920, 1080))', NL, NL);
 
     // Process elements
     generateElements(video.elements, fileNode);
 
     // Export video
     fileNode.append(NL, '# Export video', NL);
-    fileNode.append(`scene.write_video("${video.name}.mp4")`, NL);
+    fileNode.append(`scene.write_video("generated_video/${video.name}.mp4")`, NL);
 }
 
 function generateElements(elements: AssetElement[], fileNode: CompositeGeneratorNode): void {
