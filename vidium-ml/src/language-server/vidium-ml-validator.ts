@@ -1,5 +1,5 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
-import {VidiumMlAstType, AssetCreation} from './generated/ast';
+import {Video, VidiumMlAstType} from './generated/ast';
 import type { VidiumMLServices } from './vidium-ml-module';
 
 /**
@@ -9,7 +9,7 @@ export function registerValidationChecks(services: VidiumMLServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.VidiumMLValidator;
     const checks: ValidationChecks<VidiumMlAstType> = {
-        AssetCreation: validator.checkNothing
+        Video: validator.checkNothing
     };
     registry.register(checks, validator);
 }
@@ -19,7 +19,7 @@ export function registerValidationChecks(services: VidiumMLServices) {
  */
 export class VidiumMLValidator {
 
-    checkNothing(assetCreation: AssetCreation, accept: ValidationAcceptor): void {
+    checkNothing(video: Video, accept: ValidationAcceptor): void {
         // This is a dummy validation that does nothing.
     }
 

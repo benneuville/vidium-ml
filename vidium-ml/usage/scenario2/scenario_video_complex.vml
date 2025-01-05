@@ -1,0 +1,14 @@
+video named videoPromotionNumero1 {
+    define ref1 as rectangle with dimensions 200 per 300 color "red"
+    text "this is intro"
+    before ref1 set rectangle with dimensions 200 per 300 color "blue"
+    use ref1 position top
+}
+
+// Resultat final :
+// video named videoPromotionNumero1 {
+//    rectangle with dimensions 200 per 300 color "blue"
+//    rectangle with dimensions 200 per 300 color "red"
+//    text "this is intro"
+//    rectangle with dimensions 200 per 300 color "red" position top
+// }
