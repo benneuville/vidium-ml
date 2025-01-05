@@ -1,8 +1,9 @@
 import fs from 'fs';
 import {CompositeGeneratorNode, NL, toString} from 'langium';
 import path from 'path';
-import {AssetElement, AssetItem, Clip, Image, Text, Video} from '../language-server/generated/ast';
+import {AssetElement, AssetItem, Clip, Image, Text, UseAsset, Video} from '../language-server/generated/ast';
 import {extractDestinationAndName} from './cli-util';
+import chalk from "chalk";
 
 export function generatePythonFile(video: Video, filePath: string, destination: string | undefined): string {
     const data = extractDestinationAndName(filePath, destination);
@@ -18,6 +19,9 @@ export function generatePythonFile(video: Video, filePath: string, destination: 
     fs.writeFileSync(generatedFilePath, toString(fileNode));
     return generatedFilePath;
 }
+
+// Map of ref string to AssetItem
+let assetRefMap: Map<string, AssetItem> = new Map();
 
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
     fileNode.append('import movis as mv', NL, NL);
@@ -45,23 +49,44 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 break;
 
             case 'DefineAsset':
-                generateAssetItem(element.item, `${element.name}_asset`, fileNode);
-                fileNode.append(`scene.add_layer(${element.name}_asset)`, NL);
+                // Handle asset reference
+                assetRefMap.set(element.name, element.item);
+                // Handle asset generation
+                generateAssetItem(element.item, varName, fileNode);
+                fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
                 break;
 
             case 'ReferenceAsset':
-                generateAssetItem(element.item, varName, fileNode);
-                fileNode.append(`scene.add_layer(${varName})`, NL);
+                // TODO : position item=?? before or after the referenced element
                 break;
             case 'UseAsset':
-                // TODO: Implement UseAsset, to generate the same code as DefineAsset.item
+                // Handle asset de-reference
+                const referenceName = element.reference.ref?.name
+                if (referenceName && assetRefMap.has(referenceName)) {
+                    const referencedAsset = assetRefMap.get(referenceName);
+                    // Handle asset generation
+                    if (referencedAsset) {
+                        overrideAssetItemParameters(referencedAsset, element);
+                        generateAssetItem(referencedAsset, varName, fileNode);
+                        fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
+                        break;
+                    }
+                }
+                chalk.red(`Error: Asset reference ${referenceName} not found`);
                 break;
             default:
                 // Direct AssetItem cases
                 generateAssetItem(element, varName, fileNode);
-                fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
+                if (element.$type === 'Text') {
+                    // Workaround to handle movis shit behaviour
+                    const start = element.from ? element.from : 0;
+                    fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform, offset=${start})`, NL);
+                } else {
+                    fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
+                }
                 break;
         }
+        fileNode.append(NL);
     });
 }
 
@@ -90,6 +115,23 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
             compileTime(txt.from, txt.to, varName, fileNode);
             break;
+    }
+}
+
+function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
+    item.position = element.position ? element.position : item.position;
+    item.coor_x = element.coor_x ? element.coor_x : item.coor_x;
+    item.coor_y = element.coor_y ? element.coor_y : item.coor_y;
+    item.scale_x = element.scale_x ? element.scale_x : item.scale_x;
+    item.scale_y = element.scale_y ? element.scale_y : item.scale_y;
+    item.scale = element.scale ? element.scale : item.scale;
+    item.rotate = element.rotate ? element.rotate : item.rotate;
+    item.opacity = element.opacity ? element.opacity : item.opacity;
+    item.from = element.from ? element.from : item.from;
+    item.to = element.to ? element.to : item.to;
+    if (item.$type === 'Text') {
+        item.color = element.color ? element.color : item.color;
+        item.size = element.size ? element.size : item.size;
     }
 }
 

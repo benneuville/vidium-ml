@@ -26,11 +26,12 @@ DefineAsset:
     'define' name=ID 'as' item=AssetItem;
 
 ReferenceAsset:
-    ('before' reference+=[DefineAsset:ID] 'set' | 'after' reference+=[DefineAsset:ID] 'set') item=AssetItem;
+    ('before' reference=[DefineAsset:ID] 'set' | 'after' reference=[DefineAsset:ID] 'set') item=AssetItem;
 
 UseAsset:
     'use' reference=[DefineAsset:ID]
-    (ColorParam | SizeParam)*
+    (ColorParam)?
+    (SizeParam)?
     (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
@@ -75,7 +76,8 @@ fragment OpacityParam:
 // >> TEXT
 Text:
     'text' text=STRING
-    (ColorParam | SizeParam)*
+    (ColorParam)?
+    (SizeParam)?
     (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
