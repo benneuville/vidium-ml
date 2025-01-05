@@ -47,9 +47,23 @@ fragment SizeParam:
 fragment DurationParam:
     'duration' duration=INT;
 
-fragment TimeParam:
+fragment TimeSpanParam:
     ('from' from=INT)? ('to' to=INT)?;
 
+fragment PositionParam:
+    'position' position=POSITION;
+
+fragment CoordinateParam:
+    'coordinate' 'x='coor_x=INT 'y=' coor_y=INT;
+
+fragment ScaleParam:
+    'scale' (('x=' scale_x=FLOAT 'y='scale_y=FLOAT) | scale=FLOAT);
+
+fragment RotateParam:
+    'rotate' rotate=FLOAT;
+
+fragment OpacityParam:
+    'opacity' opacity=FLOAT;
 // =========
 //  ASSETS
 // =========
@@ -58,25 +72,32 @@ Rectangle :
     'rectangle' 'with' 'dimensions' width=INT 'per' height=INT 'color' color=STRING;
 
 // >> TEXT
-fragment TextParameters:
-    ColorParam | SizeParam | TimeParam;
-
 Text:
-    'text' text=STRING (TextParameters)*;
+    'text' text=STRING
+    (ColorParam | SizeParam)*
+    (TimeSpanParam)?
+    (PositionParam | CoordinateParam)?
+    (ScaleParam)?
+    (RotateParam)?
+    (OpacityParam)?;
 
 // >> CLIP
-fragment ClipParameters:
-    TimeParam;
-
-Clip :
-    'clip' path=STRING (ClipParameters)*;
+Clip:
+    'clip' path=STRING
+    (TimeSpanParam)?
+    (PositionParam | CoordinateParam)?
+    (ScaleParam)?
+    (RotateParam)?
+    (OpacityParam)?;
 
 // >> IMAGE
-fragment ImageParameters:
-    TimeParam;
-
-Image :
-    'image' path=STRING (ImageParameters)*;
+Image:
+    'image' path=STRING
+    (TimeSpanParam)?
+    (PositionParam | CoordinateParam)?
+    (ScaleParam)?
+    (RotateParam)?
+    (OpacityParam)?;
 
 // ===========
 //  TERMINALS
@@ -84,10 +105,11 @@ Image :
 
 hidden terminal WS: /\s+/;
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
+terminal POSITION: 'TOP' | 'BOTTOM' | 'LEFT' | 'RIGHT' | 'CENTER';
 terminal ID: /[_a-zA-Z][\w_]*/;
+terminal FLOAT returns number: /[0-9]*\.[0-9]+/;
 terminal INT returns number: /[0-9]+/;
 terminal STRING: /"[^"]*"|'[^']*'/;
-terminal POSITION: 'top' | 'bottom' | 'left' | 'right' | 'center';
 
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;

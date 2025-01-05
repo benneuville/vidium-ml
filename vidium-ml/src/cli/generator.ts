@@ -21,7 +21,6 @@ export function generatePythonFile(video: Video, filePath: string, destination: 
 
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
     fileNode.append('import movis as mv', NL, NL);
-
     // Create composition
     fileNode.append('# Create composition', NL);
     fileNode.append('scene = mv.layer.Composition(size=(1920, 1080), duration=5.0)', NL, NL);
@@ -60,7 +59,7 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
             default:
                 // Direct AssetItem cases
                 generateAssetItem(element, varName, fileNode);
-                fileNode.append(`scene.add_layer(${varName}_item)`, NL);
+                fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
                 break;
         }
     });
@@ -72,31 +71,55 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const rect = item as Rectangle;
             fileNode.append(`${varName} = mv.layer.Rectangle(`, NL);
             fileNode.append(`    size=(${rect.width}, ${rect.height}),`, NL);
-            fileNode.append(`    color=${compileColor(rect.color)}`, NL);
+            fileNode.append(`    color=${processColor(rect.color)}`, NL);
             fileNode.append(`)`, NL);
             break;
 
         case 'Clip':
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
+            compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
             compileTime(clip.from, clip.to, varName, fileNode);
             break;
 
         case 'Image':
             const img = item as Image;
             fileNode.append(`${varName} = mv.layer.Image("${img.path}")`, NL);
+            compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
             compileTime(img.from, img.to, varName, fileNode);
             break;
 
         case 'Text':
             const txt = item as Text;
             const text = txt.text ? txt.text : '';
-            const color = txt.color ? compileColor(txt.color) : "#ffffff";
+            const color = txt.color ? processColor(txt.color) : "#ffffff";
             const font_size = txt.size ? `${txt.size}` : 30;
             fileNode.append(`${varName} = mv.layer.Text("${text}", font_size=${font_size}, color="${color}")`, NL);
+            compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
             compileTime(txt.from, txt.to, varName, fileNode);
             break;
     }
+}
+
+function compileTransform(
+    position: string | undefined,
+    coor_x: number | undefined,
+    coor_y: number | undefined,
+    scale_x: number | undefined,
+    scale_y: number | undefined,
+    scale: number | undefined,
+    rotate: number | undefined,
+    opacity: number | undefined,
+    varName: string,
+    fileNode: CompositeGeneratorNode
+): void {
+    const processedPosition = processPosition(position, coor_x, coor_y);
+    const processedScale = processScale(scale_x, scale_y, scale);
+    // Default rotation is 0
+    rotate = rotate ? rotate : 0;
+    // Default opacity is 1.0
+    opacity = opacity ? opacity : 1.0;
+    fileNode.append(`${varName}_transform = mv.Transform(position=${processedPosition}, scale=${processedScale}, rotation=${rotate}, opacity=${opacity})`, NL);
 }
 
 function compileTime(from: number | undefined, to: number | undefined, varName: string, fileNode: CompositeGeneratorNode): void {
@@ -111,7 +134,43 @@ function compileTime(from: number | undefined, to: number | undefined, varName: 
         fileNode.append(`${varName}_item = mv.layer.LayerItem(${varName})`, NL);
     }
 }
-function compileColor(color: string): string {
+
+function processScale(scale_x: number | undefined, scale_y: number | undefined, scale: number | undefined): string {
+    if (scale_x !== undefined && scale_y !== undefined) {
+        return `(${scale_x}, ${scale_y})`;
+    } else if (scale !== undefined) {
+        return `(${scale}, ${scale})`;
+    } else {
+        // Default scale is (1.0, 1.0)
+        return '(1.0, 1.0)';
+    }
+}
+
+function processPosition(position: string | undefined, coor_x: number | undefined, coor_y: number | undefined): string {
+    if (position === undefined && coor_x !== undefined && coor_y !== undefined) {
+        return `(${coor_x}, ${coor_y})`;
+    } else if (position !== undefined) {
+        switch (position) {
+            case 'CENTER':
+                return '(1920/2, 1080/2)';
+            case 'TOP':
+                return '(1920/2, 0)';
+            case 'BOTTOM':
+                return '(1920/2, 1080)';
+            case 'LEFT':
+                return '(0, 1080/2)';
+            case 'RIGHT':
+                return '(1920, 1080/2)';
+            default:
+                return '(1920/2, 1080/2)';
+        }
+    }else {
+        // Default position is CENTER
+        return '(1920/2, 1080/2)';
+    }
+}
+
+function processColor(color: string): string {
     // Remove quotes from color string
     const cleanColor = color.replace(/['"]+/g, '').toUpperCase();
     switch (cleanColor) {
