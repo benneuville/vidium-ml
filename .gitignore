@@ -7,3 +7,4 @@ vmlenv/*
 vidium-ml/generated_video/*
 api_sample/video_sample/*
 .idea
+venv

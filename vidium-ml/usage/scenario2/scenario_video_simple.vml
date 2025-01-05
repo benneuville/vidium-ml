@@ -1,4 +1,8 @@
-video named monImageAsset {
-    clip "../api_sample/video_sample/sample0.mp4" from 0 to 2000
-    image "../api_sample/image_sample/sid.png"
+video named videoScenarioSimple {
+    // clip "../api_sample/video_sample/sample0.mp4" from 0 to 2
+    image "../api_sample/image_sample/sid.png" from 1 to 2
+    // image "../api_sample/image_sample/sid.png" from 1
+    // image "../api_sample/image_sample/sid.png" to 2
+    text "Hello World" size 50 color BLUE to 4
+    text "Hello World" color RED
 }
