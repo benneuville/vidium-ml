@@ -29,10 +29,16 @@ ReferenceAsset:
     ('before' reference+=[DefineAsset:ID] 'set' | 'after' reference+=[DefineAsset:ID] 'set') item=AssetItem;
 
 UseAsset:
-    'use' reference=[DefineAsset:ID] 'position' position=POSITION;
+    'use' reference=[DefineAsset:ID]
+    (ColorParam | SizeParam)*
+    (TimeParam)?
+    (PositionParam | CoordinateParam)?
+    (ScaleParam)?
+    (RotateParam)?
+    (OpacityParam)?;
 
 AssetItem:
-    Rectangle | Clip | Image | Text;
+    Clip | Image | Text;
 
 // =========
 //  PARAMETERS
@@ -44,11 +50,8 @@ fragment ColorParam:
 fragment SizeParam:
     'size' size=INT;
 
-fragment DurationParam:
-    'duration' duration=INT;
-
-fragment TimeSpanParam:
-    ('from' from=INT)? ('to' to=INT)?;
+fragment TimeParam:
+    ('start' from=FLOAT)? ('end' to=FLOAT)?;
 
 fragment PositionParam:
     'position' position=POSITION;
@@ -64,18 +67,16 @@ fragment RotateParam:
 
 fragment OpacityParam:
     'opacity' opacity=FLOAT;
+
 // =========
 //  ASSETS
 // =========
-
-Rectangle :
-    'rectangle' 'with' 'dimensions' width=INT 'per' height=INT 'color' color=STRING;
 
 // >> TEXT
 Text:
     'text' text=STRING
     (ColorParam | SizeParam)*
-    (TimeSpanParam)?
+    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
@@ -84,7 +85,7 @@ Text:
 // >> CLIP
 Clip:
     'clip' path=STRING
-    (TimeSpanParam)?
+    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
@@ -93,7 +94,7 @@ Clip:
 // >> IMAGE
 Image:
     'image' path=STRING
-    (TimeSpanParam)?
+    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?

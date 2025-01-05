@@ -15,6 +15,27 @@ npm run langium:generate
 node .\bin\cli generate .\scenario\test.vml
 ```
 
+## Documentation
+```
+clip <path STRING> <transform> <time> 
+image <path STRING> <transform> <time> 
+text <text STRING> <transform> <time>
+```
+
+```
+<transform> (unordered parameters)
+- <scale FLOAT> or <scale x=FLOAT y=FLOAT> (default is 1)
+- <rotate FLOAT> (default is 0)
+- <position [CENTER, TOP, BOTTOM, LEFT, RIGHT]> or <coordinate x=INT y=INT> (default is CENTER)
+- <opacity FLOAT> (default is 1)
+```
+```
+<time> (optional parameters)
+- <start FLOAT> (if not specified, the asset will start at the beginning of the video)
+- <end FLOAT> (if not specified, the asset will end at the end of the video)
+- if none specified, the asset will be displayed for the whole video
+```
+
 ## Scope
 The DSL objective is to create pipelines for generating structured videos from text.  
 3 steps :

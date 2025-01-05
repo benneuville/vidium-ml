@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.vidium-ml",
-      "match": "\\b(after|and|as|before|clip|color|coordinate|define|dimensions|from|image|named|opacity|per|position|rectangle|rotate|scale|set|size|text|to|use|video|with)\\b|\\b(x=|y=)\\B"
+      "match": "\\b(after|and|as|before|clip|color|coordinate|define|end|image|named|opacity|position|rotate|scale|set|size|start|text|use|video)\\b|\\b(x=|y=)\\B"
     },
     {
       "name": "string.quoted.double.vidium-ml",

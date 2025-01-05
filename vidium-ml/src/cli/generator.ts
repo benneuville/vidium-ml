@@ -1,7 +1,7 @@
 import fs from 'fs';
 import {CompositeGeneratorNode, NL, toString} from 'langium';
 import path from 'path';
-import {AssetElement, AssetItem, Clip, Image, Rectangle, Text, Video} from '../language-server/generated/ast';
+import {AssetElement, AssetItem, Clip, Image, Text, Video} from '../language-server/generated/ast';
 import {extractDestinationAndName} from './cli-util';
 
 export function generatePythonFile(video: Video, filePath: string, destination: string | undefined): string {
@@ -67,14 +67,6 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
 
 function generateAssetItem(item: AssetItem, varName: string, fileNode: CompositeGeneratorNode): void {
     switch (item.$type) {
-        case 'Rectangle':
-            const rect = item as Rectangle;
-            fileNode.append(`${varName} = mv.layer.Rectangle(`, NL);
-            fileNode.append(`    size=(${rect.width}, ${rect.height}),`, NL);
-            fileNode.append(`    color=${processColor(rect.color)}`, NL);
-            fileNode.append(`)`, NL);
-            break;
-
         case 'Clip':
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);

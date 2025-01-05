@@ -1,8 +1,9 @@
-video named videoPromotionNumero1 {
-    define ref1 as rectangle with dimensions 200 per 300 color "red"
-    text "this is intro"
-    before ref1 set rectangle with dimensions 200 per 300 color "blue"
-    use ref1 position top
+video named videoComplexe {
+    clip "../api_sample/video_sample/sample0.mp4"
+    image "../api_sample/image_sample/sid.png" start 1.0 end 2.0
+    image "../api_sample/image_sample/doggy.png" start 3.0 end 4.0
+    define ref1 as text "COUCOU" size 50 color BLUE end 2.0 coordinate x=960 y=250
+    use ref1 start 2.0 end 4.0
 }
 
 // Resultat final :
