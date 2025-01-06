@@ -39,7 +39,7 @@ UseAsset:
     (OpacityParam)?;
 
 AssetItem:
-    Clip | Image | Text;
+    Clip | Image | Text | Subtitle;
 
 // =========
 //  PARAMETERS
@@ -100,6 +100,16 @@ Image:
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
+    (OpacityParam)?;
+
+// >> SUBTITLE
+Subtitle:
+    'subtitle' text=STRING
+    (ColorParam)?
+    (SizeParam)?
+    (TimeParam)?
+    (PositionParam | CoordinateParam)?
+    (ScaleParam)?
     (OpacityParam)?;
 
 // ===========
