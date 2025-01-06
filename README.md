@@ -6,6 +6,13 @@ source vmlenv/bin/activate (linux)
 ./vmlenv/Scripts/activate (windows)
 
 pip install moviepy==1.0.3 numpy>=1.18.1 imageio>=2.5.0 decorator>=4.3.0 tqdm>=4.0.0 Pillow>=7.0.0 scipy>=1.3.0 pydub>=0.23.0 audiofile>=0.0.0 opencv-python>=4.5
+
+choco instal imagemagick
+
+At the end of vmlenv/Lib/site-packages/moviepy/config_defaults.py
+
+# Path to the ImageMagick binary
+IMAGEMAGICK_BINARY = r"C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe"
 ```
 
 ```
