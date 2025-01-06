@@ -1,39 +1,26 @@
-import movis as mv
-from PIL import Image
+import moviepy.editor  as mp
 
-size = (640, 480)
-duration = 5.0
+# Load the media files
+video_clip = mp.VideoFileClip("../api_sample/video_sample/sample0.mp4").subclip(0, 1)  # First second of video
+first_image = mp.ImageClip("../api_sample/image_sample/sid.png").set_duration(1)   # Show for 1 second
+second_image = mp.ImageClip("../api_sample/image_sample/doggy.png").set_duration(1) # Show for 1 second
+second_clip = mp.VideoFileClip("../api_sample/video_sample/sample0.mp4").subclip(1, 2)  # First second of video
 
-original_image = Image.open("../api_sample/image_sample/sid.png")
-resized_image = original_image.resize((800, 600))  # Resize to 800x600
+# Make sure all clips match the same size (e.g., 1920x1080)
+target_size = (1920, 1080)
+video_clip = video_clip.resize(target_size)
+first_image = first_image.resize(target_size)
+second_image = second_image.resize(target_size)
+second_clip = second_clip.resize(target_size)
 
-scene = mv.layer.Composition(size, duration=duration)
+# Concatenate all clips
+final_video = mp.concatenate_videoclips([video_clip, first_image, second_image, second_clip])
 
-scene.add_layer(
-    mv.layer.Rectangle(size, color=(127, 127, 127), duration=duration),
-    name='bg')
-rectangle = mv.layer.Rectangle(
-    size=(10, 10),
-    contents=[
-        mv.layer.FillProperty(color=(255, 83, 49)),
-        mv.layer.StrokeProperty(color=(255, 255, 255), width=5),
-    ],
-    duration=duration)
-scene.add_layer(rectangle, name='rect')
+# Write the result
+final_video.write_videofile("generated_video/output.mp4", fps=24)
 
-rectangle.size.enable_motion().extend(
-    keyframes=[0, 1, 2, 3, 4],
-    values=[(0, 0), (100, 25), (200, 50), (300, 75), (400, 100)],
-    easings=['linear'] * 5)
-# scene['rect'].rotation.enable_motion().extend(
-#    keyframes=[0, 1, 2, 3, 4],
-#    values=[0, 90, 180, 0, 0],
-#    easings=['ease_out5'] * 5)
-
-element_1 = mv.layer.media.Image(resized_image)
-element_1_transform = mv.Transform(position=(1920/2, 1080/2), scale=(1.0, 1.0), rotation=0, opacity=1)
-element_1_item = mv.layer.LayerItem(element_1, offset=1, start_time=0.0, end_time=2)
-scene.add_layer(element_1_item, transform=element_1_transform)
-
-
-scene.write_video('generated_video/output.mp4')
+# Close the clips to free up system resources
+video_clip.close()
+first_image.close()
+second_image.close()
+second_clip.close()

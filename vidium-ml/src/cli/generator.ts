@@ -24,8 +24,7 @@ export function generatePythonFile(video: Video, filePath: string, destination: 
 let assetRefMap: Map<string, AssetItem> = new Map();
 
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
-    fileNode.append('from moviepy import *', NL);
-    fileNode.append('from moviepy.video.tools.drawing import color_gradient', NL, NL);
+    fileNode.append('import moviepy.editor as mp', NL);
 
     // Create composition
     fileNode.append('# Create composition', NL);
@@ -36,7 +35,7 @@ function compile(video: Video, fileNode: CompositeGeneratorNode): void {
 
     // Combine all clips and export video
     fileNode.append(NL, '# Combine clips and export video', NL);
-    fileNode.append('final_video = CompositeVideoClip(final_clips, size=(1920, 1080))', NL);
+    fileNode.append('final_video = mp.CompositeVideoClip(final_clips, size=(1920, 1080))', NL);
     fileNode.append(`final_video.write_videofile("generated_video/${video.name}.mp4", fps=24)`, NL);
 }
 
@@ -89,14 +88,14 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
     switch (item.$type) {
         case 'Clip':
             const clip = item as Clip;
-            fileNode.append(`${varName} = VideoFileClip("${clip.path}")`, NL);
+            fileNode.append(`${varName} = mp.VideoFileClip("${clip.path}")`, NL);
             compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
             compileTime(clip.from, clip.to, varName, fileNode);
             break;
 
         case 'Image':
             const img = item as Image;
-            fileNode.append(`${varName} = ImageClip("${img.path}")`, NL);
+            fileNode.append(`${varName} = mp.ImageClip("${img.path}")`, NL);
             compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
             compileTime(img.from, img.to, varName, fileNode);
             break;
@@ -106,7 +105,7 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const text = txt.text ? txt.text : '';
             const color = txt.color ? processColor(txt.color) : "#ffffff";
             const font_size = txt.size ? txt.size : 30;
-            fileNode.append(`${varName} = TextClip(font="../api_sample/fonts/CourierPrime-Regular.ttf", text="${text}", font_size=${font_size}, color="${color}", size=(1920, 1080))`, NL);
+            fileNode.append(`${varName} = mp.TextClip(txt="${text}", fontsize=${font_size}, color="${color}", size=(1920, 1080))`, NL);
             compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
             compileTime(txt.from, txt.to, varName, fileNode);
             break;
@@ -144,22 +143,22 @@ function compileTransform(
 ): void {
     // Handle position
     const pos = processPosition(position, coor_x, coor_y);
-    fileNode.append(`${varName} = ${varName}.with_position(${pos})`, NL);
+    fileNode.append(`${varName} = ${varName}.set_position(${pos})`, NL);
 
     // Handle scale
     const scaleValues = processScale(scale_x, scale_y, scale);
     if (scaleValues !== '(1.0, 1.0)') {
-        fileNode.append(`${varName} = ${varName}.resized(${scaleValues})`, NL);
+        fileNode.append(`${varName} = ${varName}.resize(${scaleValues})`, NL);
     }
 
     // Handle rotation
     if (rotate) {
-        fileNode.append(`${varName} = ${varName}.rotated(${rotate})`, NL);
+        fileNode.append(`${varName} = ${varName}.rotate(${rotate})`, NL);
     }
 
     // Handle opacity
     if (opacity !== undefined && opacity !== 1.0) {
-        fileNode.append(`${varName} = ${varName}.with_opacity(${opacity})`, NL);
+        fileNode.append(`${varName} = ${varName}.set_opacity(${opacity})`, NL);
     }
 }
 
@@ -168,9 +167,9 @@ function compileTime(from: number | undefined, to: number | undefined, varName: 
         const start = from !== undefined ? from : 0;
         const end = to !== undefined ? to : null;
         if (end !== null) {
-            fileNode.append(`${varName} = ${varName}.subclipped(${start}, ${end})`, NL);
+            fileNode.append(`${varName} = ${varName}.subclip(${start}, ${end})`, NL);
         } else {
-            fileNode.append(`${varName} = ${varName}.subclipped(${start})`, NL);
+            fileNode.append(`${varName} = ${varName}.subclip(${start})`, NL);
         }
     }
 }
