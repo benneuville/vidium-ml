@@ -1,0 +1,5 @@
+video named videoScenarioTransition {
+    clip "../api_sample/video_sample/sample0.mp4" start 0.0 end 1.0
+    clip "../api_sample/video_sample/sample2.mp4" start 1.0 end 5.0
+    clip "../api_sample/video_sample/sample1.mp4" position TOP scale 0.3
+}

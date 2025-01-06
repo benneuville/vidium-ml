@@ -20,13 +20,13 @@ AssetComposition:
 // =========
 
 Asset:
-    (DefineAsset | ReferenceAsset | UseAsset | AssetItem );
+    (DefineAsset | UseAsset | AssetItem );
 
 DefineAsset:
     'define' name=ID 'as' item=AssetItem;
 
-ReferenceAsset:
-    ('before' reference=[DefineAsset:ID] 'set' | 'after' reference=[DefineAsset:ID] 'set') item=AssetItem;
+// ReferenceAsset:
+//     ('before' reference=[DefineAsset:ID] 'set' | 'after' reference=[DefineAsset:ID] 'set') item=AssetItem;
 
 UseAsset:
     'use' reference=[DefineAsset:ID]
@@ -36,7 +36,8 @@ UseAsset:
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (DimensionParam)?;
 
 AssetItem:
     Clip | Image | Text;
@@ -69,6 +70,9 @@ fragment RotateParam:
 fragment OpacityParam:
     'opacity' opacity=FLOAT;
 
+fragment DimensionParam:
+    ('width' width=INT)? ('height' height=INT)?;
+
 // =========
 //  ASSETS
 // =========
@@ -91,7 +95,8 @@ Clip:
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (DimensionParam)?;
 
 // >> IMAGE
 Image:
@@ -100,7 +105,9 @@ Image:
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (DimensionParam)?;
+
 
 // ===========
 //  TERMINALS

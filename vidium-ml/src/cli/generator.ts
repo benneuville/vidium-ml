@@ -24,22 +24,25 @@ export function generatePythonFile(video: Video, filePath: string, destination: 
 let assetRefMap: Map<string, AssetItem> = new Map();
 
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
-    fileNode.append('import movis as mv', NL, NL);
+    fileNode.append('from moviepy import *', NL);
+    fileNode.append('from moviepy.video.tools.drawing import color_gradient', NL, NL);
+
     // Create composition
     fileNode.append('# Create composition', NL);
-    fileNode.append('scene = mv.layer.Composition(size=(1920, 1080), duration=5.0)', NL, NL);
+    fileNode.append('final_clips = []', NL, NL);
 
     // Process elements
     generateElements(video.elements, fileNode);
 
-    // Export video
-    fileNode.append(NL, '# Export video', NL);
-    fileNode.append(`scene.write_video("generated_video/${video.name}.mp4")`, NL);
+    // Combine all clips and export video
+    fileNode.append(NL, '# Combine clips and export video', NL);
+    fileNode.append('final_video = CompositeVideoClip(final_clips, size=(1920, 1080))', NL);
+    fileNode.append(`final_video.write_videofile("generated_video/${video.name}.mp4", fps=24)`, NL);
 }
 
 function generateElements(elements: AssetElement[], fileNode: CompositeGeneratorNode): void {
     elements?.forEach((element, index) => {
-        const varName = `element_${index}`;
+        const varName = `clip_${index}`;
 
         switch (element.$type) {
             case 'AssetComposition':
@@ -53,12 +56,9 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 assetRefMap.set(element.name, element.item);
                 // Handle asset generation
                 generateAssetItem(element.item, varName, fileNode);
-                fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
+                fileNode.append(`final_clips.append(${varName})`, NL);
                 break;
 
-            case 'ReferenceAsset':
-                // TODO : position item=?? before or after the referenced element
-                break;
             case 'UseAsset':
                 // Handle asset de-reference
                 const referenceName = element.reference.ref?.name
@@ -68,22 +68,17 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                     if (referencedAsset) {
                         overrideAssetItemParameters(referencedAsset, element);
                         generateAssetItem(referencedAsset, varName, fileNode);
-                        fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
+                        fileNode.append(`final_clips.append(${varName})`, NL);
                         break;
                     }
                 }
                 chalk.red(`Error: Asset reference ${referenceName} not found`);
                 break;
+
             default:
                 // Direct AssetItem cases
                 generateAssetItem(element, varName, fileNode);
-                if (element.$type === 'Text') {
-                    // Workaround to handle movis shit behaviour
-                    const start = element.from ? element.from : 0;
-                    fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform, offset=${start})`, NL);
-                } else {
-                    fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
-                }
+                fileNode.append(`final_clips.append(${varName})`, NL);
                 break;
         }
         fileNode.append(NL);
@@ -94,14 +89,14 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
     switch (item.$type) {
         case 'Clip':
             const clip = item as Clip;
-            fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
+            fileNode.append(`${varName} = VideoFileClip("${clip.path}")`, NL);
             compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
             compileTime(clip.from, clip.to, varName, fileNode);
             break;
 
         case 'Image':
             const img = item as Image;
-            fileNode.append(`${varName} = mv.layer.Image("${img.path}")`, NL);
+            fileNode.append(`${varName} = ImageClip("${img.path}")`, NL);
             compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
             compileTime(img.from, img.to, varName, fileNode);
             break;
@@ -110,8 +105,8 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const txt = item as Text;
             const text = txt.text ? txt.text : '';
             const color = txt.color ? processColor(txt.color) : "#ffffff";
-            const font_size = txt.size ? `${txt.size}` : 30;
-            fileNode.append(`${varName} = mv.layer.Text("${text}", font_size=${font_size}, color="${color}")`, NL);
+            const font_size = txt.size ? txt.size : 30;
+            fileNode.append(`${varName} = TextClip(font="../api_sample/fonts/CourierPrime-Regular.ttf", text="${text}", font_size=${font_size}, color="${color}", size=(1920, 1080))`, NL);
             compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
             compileTime(txt.from, txt.to, varName, fileNode);
             break;
@@ -147,37 +142,46 @@ function compileTransform(
     varName: string,
     fileNode: CompositeGeneratorNode
 ): void {
-    const processedPosition = processPosition(position, coor_x, coor_y);
-    const processedScale = processScale(scale_x, scale_y, scale);
-    // Default rotation is 0
-    rotate = rotate ? rotate : 0;
-    // Default opacity is 1.0
-    opacity = opacity ? opacity : 1.0;
-    fileNode.append(`${varName}_transform = mv.Transform(position=${processedPosition}, scale=${processedScale}, rotation=${rotate}, opacity=${opacity})`, NL);
+    // Handle position
+    const pos = processPosition(position, coor_x, coor_y);
+    fileNode.append(`${varName} = ${varName}.with_position(${pos})`, NL);
+
+    // Handle scale
+    const scaleValues = processScale(scale_x, scale_y, scale);
+    if (scaleValues !== '(1.0, 1.0)') {
+        fileNode.append(`${varName} = ${varName}.resized(${scaleValues})`, NL);
+    }
+
+    // Handle rotation
+    if (rotate) {
+        fileNode.append(`${varName} = ${varName}.rotated(${rotate})`, NL);
+    }
+
+    // Handle opacity
+    if (opacity !== undefined && opacity !== 1.0) {
+        fileNode.append(`${varName} = ${varName}.with_opacity(${opacity})`, NL);
+    }
 }
 
 function compileTime(from: number | undefined, to: number | undefined, varName: string, fileNode: CompositeGeneratorNode): void {
-    const hasFrom = from !== undefined;
-    const hasTo = to !== undefined;
-
-    if (hasFrom || hasTo) {
-        const start = hasFrom ? from : 0;
-        const end = hasTo ? to : `${varName}.duration`;
-        fileNode.append(`${varName}_item = mv.layer.LayerItem(${varName}, offset=${start}, start_time=0.0, end_time=${end})`, NL);
-    } else {
-        fileNode.append(`${varName}_item = mv.layer.LayerItem(${varName})`, NL);
+    if (from !== undefined || to !== undefined) {
+        const start = from !== undefined ? from : 0;
+        const end = to !== undefined ? to : null;
+        if (end !== null) {
+            fileNode.append(`${varName} = ${varName}.subclipped(${start}, ${end})`, NL);
+        } else {
+            fileNode.append(`${varName} = ${varName}.subclipped(${start})`, NL);
+        }
     }
 }
 
 function processScale(scale_x: number | undefined, scale_y: number | undefined, scale: number | undefined): string {
     if (scale_x !== undefined && scale_y !== undefined) {
-        return `(${scale_x}, ${scale_y})`;
+        return `width=${scale_x}, height=${scale_y}`;
     } else if (scale !== undefined) {
-        return `(${scale}, ${scale})`;
-    } else {
-        // Default scale is (1.0, 1.0)
-        return '(1.0, 1.0)';
+        return `${scale}`;
     }
+    return '(1.0, 1.0)';
 }
 
 function processPosition(position: string | undefined, coor_x: number | undefined, coor_y: number | undefined): string {
@@ -186,26 +190,23 @@ function processPosition(position: string | undefined, coor_x: number | undefine
     } else if (position !== undefined) {
         switch (position) {
             case 'CENTER':
-                return '(1920/2, 1080/2)';
+                return 'lambda t: ("center", "center")';
             case 'TOP':
-                return '(1920/2, 0)';
+                return 'lambda t: ("center", "top")';
             case 'BOTTOM':
-                return '(1920/2, 1080)';
+                return 'lambda t: ("center", "bottom")';
             case 'LEFT':
-                return '(0, 1080/2)';
+                return 'lambda t: ("left", "center")';
             case 'RIGHT':
-                return '(1920, 1080/2)';
+                return 'lambda t: ("right", "center")';
             default:
-                return '(1920/2, 1080/2)';
+                return 'lambda t: ("center", "center")';
         }
-    }else {
-        // Default position is CENTER
-        return '(1920/2, 1080/2)';
     }
+    return 'lambda t: ("center", "center")';
 }
 
 function processColor(color: string): string {
-    // Remove quotes from color string
     const cleanColor = color.replace(/['"]+/g, '').toUpperCase();
     switch (cleanColor) {
         case 'RED':

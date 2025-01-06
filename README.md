@@ -35,6 +35,12 @@ text <text STRING> <transform> <time>
 - <end FLOAT> (if not specified, the asset will end at the end of the video)
 - if none specified, the asset will be displayed for the whole video
 ```
+```
+<transition []> (optional parameters)
+- <start FLOAT> (if not specified, the asset will start at the beginning of the video)
+- <end FLOAT> (if not specified, the asset will end at the end of the video)
+- if none specified, the asset will be displayed for the whole video
+```
 
 ## Scope
 The DSL objective is to create pipelines for generating structured videos from text.  

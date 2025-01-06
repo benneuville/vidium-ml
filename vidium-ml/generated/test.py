@@ -1,34 +1,39 @@
-
 import movis as mv
+from PIL import Image
 
-# Video Composition
-scene = mv.layer.Composition(size=(1920, 1080), duration=60)
+size = (640, 480)
+duration = 5.0
 
-# Define Assets
-asset_rect1 = mv.layer.Rectangle(
-                    size=(100, 200), 
-                    color=(255, 0, 0),
-                )
-asset_clip1 = mv.layer.Video("../api_sample/video_sample/sample3.mp4")
-asset_clip1 = mv.trim(asset_clip1, start_times=[1], end_times=[5])
+original_image = Image.open("../api_sample/image_sample/sid.png")
+resized_image = original_image.resize((800, 600))  # Resize to 800x600
 
-# Define Layers
-layer_layer1 = mv.layer.Composition(
-    size=(1920, 1080),
-    duration=10
-)
-layer_layer1.add_layer(asset_rect1)
-layer_layer2 = mv.layer.Composition(
-    size=(1920, 1080),
-    duration=20
-)
-layer_layer2.add_layer(asset_clip1)
-layer_layer2.add_layer(layer_layer1)
+scene = mv.layer.Composition(size, duration=duration)
 
-# Compose Sequences
-scene.add_layer(layer_layer1)
-scene.add_layer(layer_layer2)
+scene.add_layer(
+    mv.layer.Rectangle(size, color=(127, 127, 127), duration=duration),
+    name='bg')
+rectangle = mv.layer.Rectangle(
+    size=(10, 10),
+    contents=[
+        mv.layer.FillProperty(color=(255, 83, 49)),
+        mv.layer.StrokeProperty(color=(255, 255, 255), width=5),
+    ],
+    duration=duration)
+scene.add_layer(rectangle, name='rect')
 
-# Export Video
-scene.write_video('generated_video/maVideo.mp4')
-    
+rectangle.size.enable_motion().extend(
+    keyframes=[0, 1, 2, 3, 4],
+    values=[(0, 0), (100, 25), (200, 50), (300, 75), (400, 100)],
+    easings=['linear'] * 5)
+# scene['rect'].rotation.enable_motion().extend(
+#    keyframes=[0, 1, 2, 3, 4],
+#    values=[0, 90, 180, 0, 0],
+#    easings=['ease_out5'] * 5)
+
+element_1 = mv.layer.media.Image(resized_image)
+element_1_transform = mv.Transform(position=(1920/2, 1080/2), scale=(1.0, 1.0), rotation=0, opacity=1)
+element_1_item = mv.layer.LayerItem(element_1, offset=1, start_time=0.0, end_time=2)
+scene.add_layer(element_1_item, transform=element_1_transform)
+
+
+scene.write_video('generated_video/output.mp4')
