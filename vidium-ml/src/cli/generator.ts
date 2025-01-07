@@ -1,7 +1,17 @@
 import fs from 'fs';
 import {CompositeGeneratorNode, NL, toString} from 'langium';
 import path from 'path';
-import {AssetElement, AssetItem, Audio, Clip, Image, Text, UseAsset, Video} from '../language-server/generated/ast';
+import {
+    AssetElement,
+    AssetItem,
+    Audio,
+    Clip,
+    Image,
+    Text,
+    Transition,
+    UseAsset,
+    Video
+} from '../language-server/generated/ast';
 import {extractDestinationAndName} from './cli-util';
 import chalk from "chalk";
 
@@ -110,11 +120,28 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             fileNode.append(`${varName} = mv.layer.Audio("${audio.path}")`, NL);
             fileNode.append(`scene.add_layer(${varName} ${compileTime(audio, varName)})`, NL);
             break;
+        case "Transition":
+            compileTransition(item as Transition, varName, fileNode);
+
+    }
+}
+
+function compileTransition(transition: Transition, varName: string, fileNode: CompositeGeneratorNode): void {
+    switch (transition.type) {
+        case 'FADE':
+            const duration= (transition.to ?? 1.0) - (transition.from ?? 0);
+            const start = transition.from ?? 0;
+
+            fileNode.append(`${varName} = mv.layer.Rectangle(size=(1920, 1080), color="#000000")`, NL);
+            fileNode.append(`tmp = scene.add_layer(${varName}, offset=${start})`, NL);
+            fileNode.append(`tmp.opacity.enable_motion().extend([0, ${duration}/2, ${duration}], [0, 1, 0], ['ease_out', 'ease_in'])`, NL);
+            break;
     }
 }
 
 function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
-    if (item.$type !== 'Audio') {
+    // TODO : Refactor to improve maintainability
+    if (item.$type !== 'Audio' && item.$type !== 'Transition') {
         item.position = element.position ? element.position : item.position;
         item.coor_x = element.coor_x ? element.coor_x : item.coor_x;
         item.coor_y = element.coor_y ? element.coor_y : item.coor_y;
@@ -126,6 +153,7 @@ function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
     }
     item.from = element.from ? element.from : item.from;
     item.to = element.to ? element.to : item.to;
+
     if (item.$type === 'Text') {
         item.color = element.color ? element.color : item.color;
         item.size = element.size ? element.size : item.size;

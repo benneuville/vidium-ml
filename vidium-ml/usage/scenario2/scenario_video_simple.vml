@@ -6,4 +6,5 @@ video named videoScenarioSimple {
     text "COUCOU" color BLUE size 50 end 4.0 coordinate x=960 y=250
     text "Hello World" color RED size 60 start 1.0 end 4.0 position CENTER scale 2.0 rotate 90.0 opacity 0.3
     audio "../api_sample/audio_sample/audio1.mp3" start 1.0 end 4.0
+    transition FADE start 1.5 end 2.5
 }

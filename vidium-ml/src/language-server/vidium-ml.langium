@@ -36,7 +36,7 @@ UseAsset:
     (OpacityParam)?;
 
 AssetItem:
-    Clip | Image | Text | Audio;
+    Clip | Image | Text | Audio | Transition;
 
 // =========
 //  PARAMETERS
@@ -103,11 +103,16 @@ Audio:
     'audio' path=STRING
     (TimeParam)?;
 
+Transition:
+    'transition' type=TRANSITION
+    (TimeParam);
+
 // ===========
 //  TERMINALS
 // ============
 
 hidden terminal WS: /\s+/;
+terminal TRANSITION: 'FADE';
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
 terminal POSITION: 'TOP' | 'BOTTOM' | 'LEFT' | 'RIGHT' | 'CENTER';
 terminal ID: /[_a-zA-Z][\w_]*/;
