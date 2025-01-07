@@ -1,8 +1,9 @@
 video named videoScenarioSimple {
     clip "../api_sample/video_sample/sample0.mp4" start 1.0 end 2.0
-    clip "../api_sample/video_sample/sample1.mp4" start 2.0 end 3.0
+    clip "../api_sample/video_sample/sample1.mp4" start 2.0 end 2.0
     image "../api_sample/image_sample/sid.png" start 1.0 end 2.0
     image "../api_sample/image_sample/doggy.png" start 3.0 end 4.0
     text "COUCOU" color BLUE size 50 end 4.0 coordinate x=960 y=250
     text "Hello World" color RED size 60 start 1.0 end 4.0 position CENTER scale 2.0 rotate 90.0 opacity 0.3
+    audio "../api_sample/audio_sample/audio1.mp3" start 1.0 end 4.0
 }

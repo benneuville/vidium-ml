@@ -36,7 +36,7 @@ UseAsset:
     (OpacityParam)?;
 
 AssetItem:
-    Clip | Image | Text;
+    Clip | Image | Text | Audio;
 
 // =========
 //  PARAMETERS
@@ -98,6 +98,10 @@ Image:
     (ScaleParam)?
     (RotateParam)?
     (OpacityParam)?;
+
+Audio:
+    'audio' path=STRING
+    (TimeParam)?;
 
 // ===========
 //  TERMINALS

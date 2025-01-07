@@ -1,7 +1,7 @@
 import fs from 'fs';
 import {CompositeGeneratorNode, NL, toString} from 'langium';
 import path from 'path';
-import {AssetElement, AssetItem, Clip, Image, Text, UseAsset, Video} from '../language-server/generated/ast';
+import {AssetElement, AssetItem, Audio, Clip, Image, Text, UseAsset, Video} from '../language-server/generated/ast';
 import {extractDestinationAndName} from './cli-util';
 import chalk from "chalk";
 
@@ -53,7 +53,7 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 assetRefMap.set(element.name, element.item);
                 // Handle asset generation
                 generateAssetItem(element.item, varName, fileNode);
-                fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(element.item, varName)})`, NL);
+                fileNode.appendNewLine();
                 break;
 
             case 'UseAsset':
@@ -65,7 +65,7 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                     if (referencedAsset) {
                         overrideAssetItemParameters(referencedAsset, element);
                         generateAssetItem(referencedAsset, varName, fileNode);
-                        fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(referencedAsset, varName)})`, NL);
+                        fileNode.appendNewLine();
                         break;
                     }
                 }
@@ -74,11 +74,9 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
             default:
                 // Direct AssetItem cases
                 generateAssetItem(element, varName, fileNode);
-                fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(element, varName)})`, NL);
-
+                fileNode.appendNewLine();
                 break;
         }
-        fileNode.append(NL);
     });
 }
 
@@ -88,12 +86,14 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
             compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
+            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(clip, varName)})`, NL);
             break;
 
         case 'Image':
             const img = item as Image;
             fileNode.append(`${varName} = mv.layer.Image("${img.path}")`, NL);
             compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
+            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(img, varName)})`, NL);
             break;
 
         case 'Text':
@@ -103,19 +103,27 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const font_size = txt.size ? `${txt.size}` : 30;
             fileNode.append(`${varName} = mv.layer.Text("${text}", font_size=${font_size}, color="${color}")`, NL);
             compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
+            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(txt, varName)})`, NL);
+            break;
+        case "Audio":
+            const audio = item as Audio;
+            fileNode.append(`${varName} = mv.layer.Audio("${audio.path}")`, NL);
+            fileNode.append(`scene.add_layer(${varName} ${compileTime(audio, varName)})`, NL);
             break;
     }
 }
 
 function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
-    item.position = element.position ? element.position : item.position;
-    item.coor_x = element.coor_x ? element.coor_x : item.coor_x;
-    item.coor_y = element.coor_y ? element.coor_y : item.coor_y;
-    item.scale_x = element.scale_x ? element.scale_x : item.scale_x;
-    item.scale_y = element.scale_y ? element.scale_y : item.scale_y;
-    item.scale = element.scale ? element.scale : item.scale;
-    item.rotate = element.rotate ? element.rotate : item.rotate;
-    item.opacity = element.opacity ? element.opacity : item.opacity;
+    if (item.$type !== 'Audio') {
+        item.position = element.position ? element.position : item.position;
+        item.coor_x = element.coor_x ? element.coor_x : item.coor_x;
+        item.coor_y = element.coor_y ? element.coor_y : item.coor_y;
+        item.scale_x = element.scale_x ? element.scale_x : item.scale_x;
+        item.scale_y = element.scale_y ? element.scale_y : item.scale_y;
+        item.scale = element.scale ? element.scale : item.scale;
+        item.rotate = element.rotate ? element.rotate : item.rotate;
+        item.opacity = element.opacity ? element.opacity : item.opacity;
+    }
     item.from = element.from ? element.from : item.from;
     item.to = element.to ? element.to : item.to;
     if (item.$type === 'Text') {
@@ -187,7 +195,7 @@ function processPosition(position: string | undefined, coor_x: number | undefine
             default:
                 return '(1920/2, 1080/2)';
         }
-    }else {
+    } else {
         // Default position is CENTER
         return '(1920/2, 1080/2)';
     }
