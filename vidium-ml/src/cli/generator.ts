@@ -56,9 +56,6 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
                 break;
 
-            case 'ReferenceAsset':
-                // TODO : position item=?? before or after the referenced element
-                break;
             case 'UseAsset':
                 // Handle asset de-reference
                 const referenceName = element.reference.ref?.name
