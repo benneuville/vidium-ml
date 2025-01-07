@@ -20,13 +20,10 @@ AssetComposition:
 // =========
 
 Asset:
-    (DefineAsset | ReferenceAsset | UseAsset | AssetItem );
+    (DefineAsset | UseAsset | AssetItem );
 
 DefineAsset:
     'define' name=ID 'as' item=AssetItem;
-
-ReferenceAsset:
-    ('before' reference=[DefineAsset:ID] 'set' | 'after' reference=[DefineAsset:ID] 'set') item=AssetItem;
 
 UseAsset:
     'use' reference=[DefineAsset:ID]

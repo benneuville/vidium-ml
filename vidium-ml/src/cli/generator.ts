@@ -53,7 +53,7 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 assetRefMap.set(element.name, element.item);
                 // Handle asset generation
                 generateAssetItem(element.item, varName, fileNode);
-                fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
+                fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(element.item, varName)})`, NL);
                 break;
 
             case 'UseAsset':
@@ -65,7 +65,7 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                     if (referencedAsset) {
                         overrideAssetItemParameters(referencedAsset, element);
                         generateAssetItem(referencedAsset, varName, fileNode);
-                        fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
+                        fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(referencedAsset, varName)})`, NL);
                         break;
                     }
                 }
@@ -74,13 +74,8 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
             default:
                 // Direct AssetItem cases
                 generateAssetItem(element, varName, fileNode);
-                if (element.$type === 'Text') {
-                    // Workaround to handle movis shit behaviour
-                    const start = element.from ? element.from : 0;
-                    fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform, offset=${start})`, NL);
-                } else {
-                    fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
-                }
+                fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(element, varName)})`, NL);
+
                 break;
         }
         fileNode.append(NL);
@@ -93,14 +88,12 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
             compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
-            compileTime(clip.from, clip.to, varName, fileNode);
             break;
 
         case 'Image':
             const img = item as Image;
             fileNode.append(`${varName} = mv.layer.Image("${img.path}")`, NL);
             compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
-            compileTime(img.from, img.to, varName, fileNode);
             break;
 
         case 'Text':
@@ -110,7 +103,6 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const font_size = txt.size ? `${txt.size}` : 30;
             fileNode.append(`${varName} = mv.layer.Text("${text}", font_size=${font_size}, color="${color}")`, NL);
             compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
-            compileTime(txt.from, txt.to, varName, fileNode);
             break;
     }
 }
@@ -153,17 +145,17 @@ function compileTransform(
     fileNode.append(`${varName}_transform = mv.Transform(position=${processedPosition}, scale=${processedScale}, rotation=${rotate}, opacity=${opacity})`, NL);
 }
 
-function compileTime(from: number | undefined, to: number | undefined, varName: string, fileNode: CompositeGeneratorNode): void {
-    const hasFrom = from !== undefined;
-    const hasTo = to !== undefined;
+function compileTime(element: AssetItem, varName: string): string {
+    const hasFrom = element.from !== undefined;
+    const hasTo = element.to !== undefined;
 
     if (hasFrom || hasTo) {
-        const start = hasFrom ? from : 0;
-        const end = hasTo ? to : `${varName}.duration`;
-        fileNode.append(`${varName}_item = mv.layer.LayerItem(${varName}, offset=${start}, start_time=0.0, end_time=${end})`, NL);
-    } else {
-        fileNode.append(`${varName}_item = mv.layer.LayerItem(${varName})`, NL);
+        const start = hasFrom ? element.from : 0;
+        const end = hasTo ? element.to : `${varName}.duration`;
+        return `, offset=${start}, start_time=0.0, end_time=${end}`;
     }
+    // default start time is 0
+    return `, offset=0, start_time=0.0, end_time=${varName}.duration`;
 }
 
 function processScale(scale_x: number | undefined, scale_y: number | undefined, scale: number | undefined): string {
