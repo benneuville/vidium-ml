@@ -12,6 +12,7 @@ export type VidiumMLAddedServices = {
     validation: {
         VidiumMLValidator: VidiumMLValidator
     }
+    
 }
 
 /**

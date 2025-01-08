@@ -13,17 +13,45 @@
         "languages": [{
             "id": "vidium-ml",
             "aliases": ["VidiumML", "vidium-ml"],
-            "extensions": [".aml"],
+            "extensions": [".vml"],
             "configuration": "./language-configuration.json"
         }],
         "grammars": [{
             "language": "vidium-ml",
             "scopeName": "source.vidium-ml",
             "path": "./syntaxes/vidium-ml.tmLanguage.json"
-        }]
+        }],
+        "commands": [{
+            "command": "vidiumML.showVisualizer",
+            "title": "Show Visualizer VidiumML"
+        }],
+        "viewsContainers": {
+            "panel": [
+                {
+                    "id": "vidiumML-Visualizer",
+                    "title": "VidiumML Visualizer",
+                    "icon": "media/vidiumML.svg"
+                }]
+        },
+        "views": {
+            "vidiumML-Visualizer": [
+                {
+                    "id": "vidiumML-Visualizer-view",
+                    "name": "VidiumML Visualizer",
+                    "type": "webview",
+                    "ctorDescriptor": {
+                        "id": "vscode-codicons.vscode-codicon-extensions-view-icon"
+                    }
+                }
+            ]
+        }
+
     },
     "activationEvents": [
-        "onLanguage:vidium-ml"
+        "onLanguage:vidium-ml",
+        "onStartupFinished",
+        "onDidOpenTextDocument",
+        "onFileSystem:vml"
     ],
     "files": [
         "bin",
