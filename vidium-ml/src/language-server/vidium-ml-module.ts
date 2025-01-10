@@ -4,6 +4,7 @@ import {
 } from 'langium';
 import { VidiumMLGeneratedModule, VidiumMlGeneratedSharedModule } from './generated/module';
 import { VidiumMLValidator, registerValidationChecks } from './vidium-ml-validator';
+import { VidiumMLVisualizerService } from './vidium-ml-visualizer';
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -11,9 +12,13 @@ import { VidiumMLValidator, registerValidationChecks } from './vidium-ml-validat
 export type VidiumMLAddedServices = {
     validation: {
         VidiumMLValidator: VidiumMLValidator
+    },
+    visualization: {
+        VidiumMLVisualizer: VidiumMLVisualizerService
     }
     
 }
+
 
 /**
  * Union of Langium default services and your custom services - use this as constructor parameter
@@ -29,6 +34,9 @@ export type VidiumMLServices = LangiumServices & VidiumMLAddedServices
 export const VidiumMLModule: Module<VidiumMLServices, PartialLangiumServices & VidiumMLAddedServices> = {
     validation: {
         VidiumMLValidator: () => new VidiumMLValidator()
+    },
+    visualization: {
+        VidiumMLVisualizer: () => new VidiumMLVisualizerService()
     }
 };
 
@@ -62,5 +70,6 @@ export function createVidiumMLServices(context: DefaultSharedModuleContext): {
     );
     shared.ServiceRegistry.register(VidiumML);
     registerValidationChecks(VidiumML);
+    
     return { shared, VidiumML };
 }

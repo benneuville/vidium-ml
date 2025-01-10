@@ -6,7 +6,7 @@
 /* eslint-disable */
 import { AstNode, AbstractAstReflection, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 
-export type Asset = AssetItem | DefineAsset | ReferenceAsset | UseAsset;
+export type Asset = AssetItem | DefineAsset | UseAsset;
 
 export const Asset = 'Asset';
 
@@ -22,7 +22,7 @@ export function isAssetElement(item: unknown): item is AssetElement {
     return reflection.isInstance(item, AssetElement);
 }
 
-export type AssetItem = Clip | Image | Text;
+export type AssetItem = Audio | Clip | Image | Text | Transition;
 
 export const AssetItem = 'AssetItem';
 
@@ -31,7 +31,7 @@ export function isAssetItem(item: unknown): item is AssetItem {
 }
 
 export interface AssetComposition extends AstNode {
-    readonly $container: AssetComposition | DefineAsset | ReferenceAsset | Video;
+    readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'AssetComposition';
     left: AssetElement
     right: AssetElement
@@ -43,8 +43,22 @@ export function isAssetComposition(item: unknown): item is AssetComposition {
     return reflection.isInstance(item, AssetComposition);
 }
 
+export interface Audio extends AstNode {
+    readonly $container: AssetComposition | DefineAsset | Video;
+    readonly $type: 'Audio';
+    from?: number
+    path: string
+    to?: number
+}
+
+export const Audio = 'Audio';
+
+export function isAudio(item: unknown): item is Audio {
+    return reflection.isInstance(item, Audio);
+}
+
 export interface Clip extends AstNode {
-    readonly $container: AssetComposition | DefineAsset | ReferenceAsset | Video;
+    readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Clip';
     coor_x?: number
     coor_y?: number
@@ -66,7 +80,7 @@ export function isClip(item: unknown): item is Clip {
 }
 
 export interface DefineAsset extends AstNode {
-    readonly $container: AssetComposition | DefineAsset | ReferenceAsset | Video;
+    readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'DefineAsset';
     item: AssetItem
     name: string
@@ -79,7 +93,7 @@ export function isDefineAsset(item: unknown): item is DefineAsset {
 }
 
 export interface Image extends AstNode {
-    readonly $container: AssetComposition | DefineAsset | ReferenceAsset | Video;
+    readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Image';
     coor_x?: number
     coor_y?: number
@@ -100,21 +114,8 @@ export function isImage(item: unknown): item is Image {
     return reflection.isInstance(item, Image);
 }
 
-export interface ReferenceAsset extends AstNode {
-    readonly $container: AssetComposition | DefineAsset | ReferenceAsset | Video;
-    readonly $type: 'ReferenceAsset';
-    item: AssetItem
-    reference: Reference<DefineAsset>
-}
-
-export const ReferenceAsset = 'ReferenceAsset';
-
-export function isReferenceAsset(item: unknown): item is ReferenceAsset {
-    return reflection.isInstance(item, ReferenceAsset);
-}
-
 export interface Text extends AstNode {
-    readonly $container: AssetComposition | DefineAsset | ReferenceAsset | Video;
+    readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Text';
     color?: string
     coor_x?: number
@@ -137,8 +138,22 @@ export function isText(item: unknown): item is Text {
     return reflection.isInstance(item, Text);
 }
 
+export interface Transition extends AstNode {
+    readonly $container: AssetComposition | DefineAsset | Video;
+    readonly $type: 'Transition';
+    from?: number
+    to?: number
+    type: string
+}
+
+export const Transition = 'Transition';
+
+export function isTransition(item: unknown): item is Transition {
+    return reflection.isInstance(item, Transition);
+}
+
 export interface UseAsset extends AstNode {
-    readonly $container: AssetComposition | DefineAsset | ReferenceAsset | Video;
+    readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'UseAsset';
     color?: string
     coor_x?: number
@@ -178,11 +193,12 @@ export interface VidiumMlAstType {
     AssetComposition: AssetComposition
     AssetElement: AssetElement
     AssetItem: AssetItem
+    Audio: Audio
     Clip: Clip
     DefineAsset: DefineAsset
     Image: Image
-    ReferenceAsset: ReferenceAsset
     Text: Text
+    Transition: Transition
     UseAsset: UseAsset
     Video: Video
 }
@@ -190,7 +206,7 @@ export interface VidiumMlAstType {
 export class VidiumMlAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Asset', 'AssetComposition', 'AssetElement', 'AssetItem', 'Clip', 'DefineAsset', 'Image', 'ReferenceAsset', 'Text', 'UseAsset', 'Video'];
+        return ['Asset', 'AssetComposition', 'AssetElement', 'AssetItem', 'Audio', 'Clip', 'DefineAsset', 'Image', 'Text', 'Transition', 'UseAsset', 'Video'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -199,13 +215,14 @@ export class VidiumMlAstReflection extends AbstractAstReflection {
             case Asset: {
                 return this.isSubtype(AssetElement, supertype);
             }
+            case Audio:
             case Clip:
             case Image:
-            case Text: {
+            case Text:
+            case Transition: {
                 return this.isSubtype(AssetItem, supertype);
             }
             case DefineAsset:
-            case ReferenceAsset:
             case UseAsset:
             case AssetItem: {
                 return this.isSubtype(Asset, supertype);
@@ -219,7 +236,6 @@ export class VidiumMlAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
-            case 'ReferenceAsset:reference':
             case 'UseAsset:reference': {
                 return DefineAsset;
             }
