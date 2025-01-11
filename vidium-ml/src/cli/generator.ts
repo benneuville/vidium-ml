@@ -2,6 +2,7 @@ import fs from 'fs';
 import {CompositeGeneratorNode, NL, toString} from 'langium';
 import path from 'path';
 import {
+    Asset,
     AssetElement,
     AssetItem,
     Audio,
@@ -33,6 +34,7 @@ export function generatePythonFile(video: Video, filePath: string, destination: 
 
 // Map of ref string to AssetItem
 let assetRefMap: Map<string, AssetItem> = new Map();
+let previousElement: AssetItem;
 const ABSOLUTE_DURATION = 5.0;
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
     fileNode.append('import movis as mv', NL, NL);
@@ -68,6 +70,7 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 // Handle asset generation
                 generateAssetItem(element.item, varName, fileNode);
                 fileNode.appendNewLine();
+                assignPreviousElement(element);
                 break;
 
             case 'UseAsset':
@@ -92,6 +95,7 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 if (element.$type !== 'Subtitle') {
                     generateAssetItem(element, varName, fileNode);
                     fileNode.appendNewLine();
+                    assignPreviousElement(element);
                 }
                 break;
         }
@@ -99,9 +103,12 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
 
     // Generate subtitles (on top of all other elements)
     elements.filter(element => element.$type === 'Subtitle').forEach((element, index) => {
+        element = element as Subtitle;
         const varName = `element_${index}`;
-        generateAssetItem(element as Subtitle, varName, fileNode);
+
+        generateAssetItem(element, varName, fileNode);
         fileNode.appendNewLine();
+        assignPreviousElement(element);
     });
 }
 
@@ -219,6 +226,15 @@ function compileTransform(
     fileNode.append(`${varName}_transform = mv.Transform(position=${processedPosition}, scale=${processedScale}, rotation=${rotate}, opacity=${opacity})`, NL);
 }
 
+function assignPreviousElement(element: Asset): void {
+    if (element.$type === 'DefineAsset') {
+        previousElement = element.item;
+    } else {
+        // Since this function is called after the DefineAsset or AssetItem is generated, the else is safe (AssetItem)
+        previousElement =  element as AssetItem;
+    }
+}
+
 function compileTime(element: AssetItem, varName: string): string {
     const hasFrom = element.from !== undefined;
     const hasTo = element.to !== undefined;
@@ -234,27 +250,37 @@ function compileTime(element: AssetItem, varName: string): string {
     }
 
     function handleRelativeTime (element: AssetItem, varName: string): string {
-        const start = hasFrom ? element.from : 0;
-        const referenceName = element.reference.ref?.name
+        let offset = 0;
+        const referenceName = element.reference?.ref?.name;
+        // 'lasts for _ since _'
         if (referenceName && assetRefMap.has(referenceName)) {
             const referencedAsset = assetRefMap.get(referenceName);
-            // Compute offset to start just after the referenced asset
-            const offset = (referencedAsset?.from ? referencedAsset?.from : 0) + (referencedAsset?.to ? referencedAsset?.to : ABSOLUTE_DURATION);
+            // Compute offset to be just after the referenced asset
+            // Handle inconsistency of movis in time handling for mv.layer.Text
+            if (element.$type === 'Text' || element.$type === 'Subtitle') {
+                offset = (previousElement?.to ? previousElement?.to : ABSOLUTE_DURATION);
+            } else {
+                offset = (referencedAsset?.from ? referencedAsset?.from : 0) + (referencedAsset?.to ? referencedAsset?.to : ABSOLUTE_DURATION);
+            }
             return `, offset=${offset}, start_time=0.0, end_time=${element.duration}`;
-        } else {
-            return `, offset=${start}, start_time=0.0, end_time=${element.duration}`;
         }
-
-
-        return `, offset=${start}, start_time=0.0, end_time=${end}`;
+        // 'lasts for _'
+        else {
+            // Compute offset to be just after the previous asset
+            // Handle inconsistency of movis in time handling for mv.layer.Text
+            if (element.$type === 'Text' || element.$type === 'Subtitle') {
+                offset = (previousElement?.to ? previousElement?.to : ABSOLUTE_DURATION);
+            } else {
+                offset = (previousElement?.from ? previousElement?.from : 0) + (previousElement?.to ? previousElement?.to : ABSOLUTE_DURATION);
+            }
+            return `, offset=${offset}, start_time=0.0, end_time=${element.duration}`;
+        }
     }
 
     function handleAbsoluteTime(element: AssetItem, varName: string): string {
         const start = hasFrom ? element.from : 0;
         let  end
-        // Handle inconsistency of movis in time handling for Textual layers
-        // Textual layers "end_time" is relative to start_time
-        // and non textual layers "end_time" is relative to 0 absolute time
+        // Handle inconsistency of movis in time handling for mv.layer.Text
         if (element.$type === 'Text' || element.$type === 'Subtitle') {
             // @ts-ignore
             end = hasTo ? (element.to - start) : `${varName}.duration`;

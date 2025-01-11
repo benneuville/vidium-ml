@@ -1,5 +1,9 @@
 video named videoScenarioRelativeTime {
-    define ref1 as clip "../api_sample/video_sample/sample1.mp4" start 0.0 end 2.0
-    clip "../api_sample/video_sample/sample0.mp4" start 2.0 end 4.0
-    text "COUCOU" color BLUE size 50 position CENTER lasts for 4.0 since ref1 // 'lasts for' is by default relative to previous element, 'since' specifies the reference element
+    define ref1 as clip "../api_sample/video_sample/sample1.mp4" start 0.0 end 1.0
+    clip "../api_sample/video_sample/sample0.mp4" lasts for 2.0
+    text "COUCOU" color BLUE size 50 position CENTER lasts for 1.0 since ref1 // 'lasts for' is by default relative to previous element, 'since' specifies the reference element
 }
+
+// clip 1 : 0.0 - 1.0
+// clip 2 : 2.0 - 4.0
+// text : 1.0 - 5.0
