@@ -99,6 +99,12 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
 
     // Add subtitle after all other elements (ensure they are on top)
     fileNode.append(NL, '# Add subtitles', NL);
+    fileNode.append('font_size = 60', NL);
+
+    fileNode.append('#FUNCTION DECLARATION', NL);
+    fileNode.append('position_x = video_width / 2  # Centré horizontalement', NL);
+    fileNode.append('position_y = video_height - (font_size / 2) - 20', NL);
+
     subtitles.forEach((subtitle, subIndex) => {
         const varName = `subtitle_${subIndex}`;
         generateAssetItem(subtitle, varName, fileNode);
@@ -123,14 +129,14 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
         case 'Clip':
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
-            compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
+            compileTransform(clip, clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
             compileTime(clip.from, clip.to, varName, fileNode);
             break;
 
         case 'Image':
             const img = item as Image;
             fileNode.append(`${varName} = mv.layer.Image("${img.path}")`, NL);
-            compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
+            compileTransform(img, img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
             compileTime(img.from, img.to, varName, fileNode);
             break;
 
@@ -140,7 +146,7 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const color = txt.color ? processColor(txt.color) : "#ffffff";
             const font_size = txt.size ? `${txt.size}` : 30;
             fileNode.append(`${varName} = mv.layer.Text("${text}", font_size=${font_size}, color="${color}")`, NL);
-            compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
+            compileTransform(txt, txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
             compileTime(txt.from, txt.to, varName, fileNode);
             break;
         // Subtitle is a text with specific parameters by default (could be overriden, of course)
@@ -148,10 +154,10 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const subtitle = item as Subtitle;
             const subtxt = subtitle.text ? subtitle.text : '';
             const subcolor = subtitle.color ? processColor(subtitle.color) : "#ffffff";
-            const subfont_size = subtitle.size ? `${subtitle.size}` : 80;
+            const subfont_size = subtitle.size ? `${subtitle.size}` : 'font_size';
             const subFont = 'Arial';
             fileNode.append(`${varName} = mv.layer.Text("${subtxt}", font_size=${subfont_size}, color="${subcolor}", font_family="${subFont}")`, NL);
-            compileTransform(subtitle.position, subtitle.coor_x, subtitle.coor_y, subtitle.scale_x, subtitle.scale_y, subtitle.scale, undefined, subtitle.opacity, varName, fileNode);
+            compileTransform(subtitle, subtitle.position, subtitle.coor_x, subtitle.coor_y, subtitle.scale_x, subtitle.scale_y, subtitle.scale, undefined, subtitle.opacity, varName, fileNode);
             compileTime(subtitle.from, subtitle.to, varName, fileNode);
             break;
     }
@@ -189,6 +195,7 @@ function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
 }
 
 function compileTransform(
+    element: AssetItem,
     position: string | undefined,
     coor_x: number | undefined,
     coor_y: number | undefined,
@@ -200,7 +207,14 @@ function compileTransform(
     varName: string,
     fileNode: CompositeGeneratorNode
 ): void {
-    const processedPosition = processPosition(position, coor_x, coor_y);
+    let processedPosition = undefined;
+    if(element.$type == 'Subtitle'){
+        processedPosition = '(position_x, position_y)';
+    }
+    else{
+        processedPosition = processPosition(position, coor_x, coor_y);
+    }
+    
     const processedScale = processScale(scale_x, scale_y, scale);
     // Default rotation is 0
     rotate = rotate ? rotate : 0;

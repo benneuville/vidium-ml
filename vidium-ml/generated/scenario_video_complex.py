@@ -38,11 +38,12 @@ scene.add_layer(element_6_item, transform=element_6_transform)
 
 
 # Add subtitles
-sub_size = 80
-sub_text = "SUBS DE ZINZIN, TELEMENT ZINZIN QUE CA PRENDS PLUSIEURS LIGNES"
-
-subtitle_0 = mv.layer.Text(sub_text, font_size=sub_size, color="#ffffff", font_family="Arial")
-subtitle_0_transform = mv.Transform(position=(1920/2, 1080/2), scale=(1.0, 1.0), rotation=0, opacity=1)
+font_size = 60
+#FUNCTION DECLARATION
+position_x = video_width / 2  # Centré horizontalement
+position_y = video_height - (font_size / 2) - 20
+subtitle_0 = mv.layer.Text("SUBS", font_size=font_size, color="#ffffff", font_family="Arial")
+subtitle_0_transform = mv.Transform(position=(position_x, position_y), scale=(1.0, 1.0), rotation=0, opacity=1)
 subtitle_0_item = mv.layer.LayerItem(subtitle_0)
 scene.add_layer(subtitle_0_item, transform=subtitle_0_transform, name="subtitle_0")
 scene["subtitle_0"].add_effect(mv.effect.DropShadow(offset=5.0, angle=0, color=(0, 0, 0), opacity=1.0))
