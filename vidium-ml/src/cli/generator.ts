@@ -225,7 +225,16 @@ function compileTime(element: AssetItem, varName: string): string {
 
     if (hasFrom || hasTo) {
         const start = hasFrom ? element.from : 0;
-        const end = hasTo ? element.to : `${varName}.duration`;
+        let  end
+        // Handle inconsistency of movis in time handling for Textual layers
+        // Textual layers "end_time" is relative to start_time
+        // and non textual layers "end_time" is relative to 0 absolute time
+        if (element.$type === 'Text' || element.$type === 'Subtitle') {
+            // @ts-ignore
+            end = hasTo ? (element.to - start) : `${varName}.duration`;
+        } else {
+            end = hasTo ? element.to : `${varName}.duration`;
+        }
         return `, offset=${start}, start_time=0.0, end_time=${end}`;
     }
     // default start time is 0
