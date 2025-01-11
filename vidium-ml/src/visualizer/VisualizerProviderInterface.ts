@@ -1,0 +1,3 @@
+interface VisualizerProviderInterface {
+    updateView(): void;
+}

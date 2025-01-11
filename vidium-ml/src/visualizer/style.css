@@ -1,0 +1,78 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    position: absolute;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+}
+button {
+    margin: 5px;
+}
+select {
+    margin: 5px;
+}
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: rgb(255, 255, 255);
+    height: 100%;
+    overflow: visible;
+    margin: 0;
+    position: relative;
+}
+.controls {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    top: 0;
+    border-bottom: 1px solid #ccc;
+}
+
+.controls > * {
+    font-size: 14px;
+}
+
+#lockButton {
+    padding: 0;
+    margin: 0;
+    border: none;
+    width: 10px;
+    background-color: transparent;
+    cursor: pointer;
+    margin-bottom: 1px;
+    margin-right: 5px;
+}
+
+/*dropdown style modified to put the drop arrow on the right*/
+#fileDropdown {
+    position: relative;
+    display: inline-block;
+    border: none;
+    background-color: transparent;
+    margin-right: 10px;
+    padding: 5px 0;
+}
+
+#fileDropdown:after {
+    right: 0 !important;
+    color: black !important;
+}
+
+option:is(:disabled) {
+    color: #ccc;
+}
+
+option:is(selected) {
+    color: #ccc;
+}
+
+option {
+    color: black;
+}

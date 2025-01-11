@@ -36,7 +36,7 @@ UseAsset:
     (OpacityParam)?;
 
 AssetItem:
-    Clip | Image | Text | Audio | Transition;
+    Clip | Image | Text | Audio | Transition | Subtitle;
 
 // =========
 //  PARAMETERS
@@ -106,6 +106,16 @@ Audio:
 Transition:
     'transition' type=TRANSITION
     (TimeParam);
+
+// >> SUBTITLE
+Subtitle:
+    'subtitle' text=STRING
+    (ColorParam)?
+    (SizeParam)?
+    (TimeParam)?
+    (PositionParam | CoordinateParam)?
+    (ScaleParam)?
+    (OpacityParam)?;
 
 // ===========
 //  TERMINALS
