@@ -33,7 +33,7 @@ export function generatePythonFile(video: Video, filePath: string, destination: 
 
 // Map of ref string to AssetItem
 let assetRefMap: Map<string, AssetItem> = new Map();
-
+const ABSOLUTE_DURATION = 5.0;
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
     fileNode.append('import movis as mv', NL, NL);
     // Create composition
@@ -222,8 +222,34 @@ function compileTransform(
 function compileTime(element: AssetItem, varName: string): string {
     const hasFrom = element.from !== undefined;
     const hasTo = element.to !== undefined;
+    const hasDuration = element.duration !== undefined;
 
-    if (hasFrom || hasTo) {
+    if (hasDuration) {
+        return handleRelativeTime(element, varName);
+    } else if (hasFrom || hasTo) {
+        return handleAbsoluteTime(element, varName);
+    } else {
+        // default start time is 0
+        return `, offset=0, start_time=0.0, end_time=${varName}.duration`;
+    }
+
+    function handleRelativeTime (element: AssetItem, varName: string): string {
+        const start = hasFrom ? element.from : 0;
+        const referenceName = element.reference.ref?.name
+        if (referenceName && assetRefMap.has(referenceName)) {
+            const referencedAsset = assetRefMap.get(referenceName);
+            // Compute offset to start just after the referenced asset
+            const offset = (referencedAsset?.from ? referencedAsset?.from : 0) + (referencedAsset?.to ? referencedAsset?.to : ABSOLUTE_DURATION);
+            return `, offset=${offset}, start_time=0.0, end_time=${element.duration}`;
+        } else {
+            return `, offset=${start}, start_time=0.0, end_time=${element.duration}`;
+        }
+
+
+        return `, offset=${start}, start_time=0.0, end_time=${end}`;
+    }
+
+    function handleAbsoluteTime(element: AssetItem, varName: string): string {
         const start = hasFrom ? element.from : 0;
         let  end
         // Handle inconsistency of movis in time handling for Textual layers
@@ -237,9 +263,9 @@ function compileTime(element: AssetItem, varName: string): string {
         }
         return `, offset=${start}, start_time=0.0, end_time=${end}`;
     }
-    // default start time is 0
-    return `, offset=0, start_time=0.0, end_time=${varName}.duration`;
 }
+
+
 
 function processScale(scale_x: number | undefined, scale_y: number | undefined, scale: number | undefined): string {
     if (scale_x !== undefined && scale_y !== undefined) {

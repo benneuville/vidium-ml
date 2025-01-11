@@ -49,7 +49,7 @@ fragment SizeParam:
     'size' size=INT;
 
 fragment TimeParam:
-    ('start' from=FLOAT)? ('end' to=FLOAT)?;
+    (('start' from=FLOAT)? ('end' to=FLOAT)?) | ('lasts' 'for' duration=FLOAT ('since' reference=[DefineAsset:ID])?);
 
 fragment PositionParam:
     'position' position=POSITION;
@@ -75,29 +75,29 @@ Text:
     'text' text=STRING
     (ColorParam)?
     (SizeParam)?
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam)?;
 
 // >> CLIP
 Clip:
     'clip' path=STRING
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam);
 
 // >> IMAGE
 Image:
     'image' path=STRING
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam)?;
 
 Audio:
     'audio' path=STRING
@@ -112,10 +112,10 @@ Subtitle:
     'subtitle' text=STRING
     (ColorParam)?
     (SizeParam)?
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam)?;
 
 // ===========
 //  TERMINALS

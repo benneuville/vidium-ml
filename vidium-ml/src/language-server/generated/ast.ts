@@ -46,8 +46,10 @@ export function isAssetComposition(item: unknown): item is AssetComposition {
 export interface Audio extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Audio';
+    duration?: number
     from?: number
     path: string
+    reference?: Reference<DefineAsset>
     to?: number
 }
 
@@ -62,10 +64,12 @@ export interface Clip extends AstNode {
     readonly $type: 'Clip';
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     path: string
     position?: string
+    reference?: Reference<DefineAsset>
     rotate?: number
     scale?: number
     scale_x?: number
@@ -97,10 +101,12 @@ export interface Image extends AstNode {
     readonly $type: 'Image';
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     path: string
     position?: string
+    reference?: Reference<DefineAsset>
     rotate?: number
     scale?: number
     scale_x?: number
@@ -120,9 +126,11 @@ export interface Subtitle extends AstNode {
     color?: string
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     position?: string
+    reference?: Reference<DefineAsset>
     scale?: number
     scale_x?: number
     scale_y?: number
@@ -143,9 +151,11 @@ export interface Text extends AstNode {
     color?: string
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     position?: string
+    reference?: Reference<DefineAsset>
     rotate?: number
     scale?: number
     scale_x?: number
@@ -164,7 +174,9 @@ export function isText(item: unknown): item is Text {
 export interface Transition extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Transition';
+    duration?: number
     from?: number
+    reference?: Reference<DefineAsset>
     to?: number
     type: string
 }
@@ -181,6 +193,7 @@ export interface UseAsset extends AstNode {
     color?: string
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     position?: string
@@ -261,6 +274,12 @@ export class VidiumMlAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
+            case 'Audio:reference':
+            case 'Clip:reference':
+            case 'Image:reference':
+            case 'Subtitle:reference':
+            case 'Text:reference':
+            case 'Transition:reference':
             case 'UseAsset:reference': {
                 return DefineAsset;
             }

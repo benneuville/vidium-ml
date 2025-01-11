@@ -1,6 +1,7 @@
 # vidium-ml
 
 ```
+Dans /vidium-ml/vidium-ml
 python3 -m venv vmlenv (the name must be vmlenv to get gitignored)
 source vmlenv/bin/activate (linux)
 ./vmlenv/Scripts/activate (windows)
