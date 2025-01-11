@@ -6,7 +6,7 @@ import {
     AssetItem,
     Audio,
     Clip,
-    Image,
+    Image, Subtitle,
     Text,
     Transition,
     UseAsset,
@@ -37,7 +37,9 @@ function compile(video: Video, fileNode: CompositeGeneratorNode): void {
     fileNode.append('import movis as mv', NL, NL);
     // Create composition
     fileNode.append('# Create composition', NL);
-    fileNode.append('scene = mv.layer.Composition(size=(1920, 1080), duration=5.0)', NL, NL);
+    fileNode.append('video_width = 1920', NL);
+    fileNode.append('video_height = 1080', NL);
+    fileNode.append('scene = mv.layer.Composition(size=(video_width, video_height), duration=5.0)', NL, NL);
 
     // Process elements
     generateElements(video.elements, fileNode);
@@ -48,6 +50,7 @@ function compile(video: Video, fileNode: CompositeGeneratorNode): void {
 }
 
 function generateElements(elements: AssetElement[], fileNode: CompositeGeneratorNode): void {
+    const subtitles: AssetItem[] = []; // Liste pour stocker les subtitles
     elements?.forEach((element, index) => {
         const varName = `element_${index}`;
 
@@ -61,9 +64,13 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
             case 'DefineAsset':
                 // Handle asset reference
                 assetRefMap.set(element.name, element.item);
-                // Handle asset generation
-                generateAssetItem(element.item, varName, fileNode);
-                fileNode.appendNewLine();
+                if (element.item.$type === 'Subtitle') {
+                    subtitles.push(element.item); // Stocker les subtitles
+                }else{
+                    // Handle asset generation
+                    generateAssetItem(element.item, varName, fileNode);
+                    fileNode.appendNewLine();
+                }
                 break;
 
             case 'UseAsset':
@@ -73,21 +80,55 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                     const referencedAsset = assetRefMap.get(referenceName);
                     // Handle asset generation
                     if (referencedAsset) {
-                        overrideAssetItemParameters(referencedAsset, element);
-                        generateAssetItem(referencedAsset, varName, fileNode);
-                        fileNode.appendNewLine();
+                        if (referencedAsset.$type === 'Subtitle') {
+                            subtitles.push(referencedAsset); // Stocker les subtitles
+                        }
+                        else{
+                            overrideAssetItemParameters(referencedAsset, element);
+                            generateAssetItem(referencedAsset, varName, fileNode);
+                            fileNode.appendNewLine();
+                        }
                         break;
                     }
                 }
                 chalk.red(`Error: Asset reference ${referenceName} not found`);
                 break;
             default:
-                // Direct AssetItem cases
-                generateAssetItem(element, varName, fileNode);
-                fileNode.appendNewLine();
+                if (element.$type === 'Subtitle') {
+                    subtitles.push(element as Subtitle); // Stocker les subtitles
+                }
+                else{
+                    // Direct AssetItem cases
+                    generateAssetItem(element, varName, fileNode);
+                    fileNode.appendNewLine();
+                }
                 break;
         }
     });
+
+    // Add subtitle after all other elements (ensure they are on top)
+    fileNode.append(NL, '# Add subtitles', NL);
+    fileNode.append('font_size = 60', NL);
+
+    fileNode.append('#FUNCTION DECLARATION', NL);
+    fileNode.append('position_x = video_width / 2  # Centré horizontalement', NL);
+    fileNode.append('position_y = video_height - (font_size / 2) - 20', NL);
+
+    subtitles.forEach((subtitle, subIndex) => {
+        const varName = `subtitle_${subIndex}`;
+        generateAssetItem(subtitle, varName, fileNode);
+        computeSubtitleStyle(subtitle, varName, fileNode);
+    });
+}
+
+function computeSubtitleStyle(subtitle: AssetItem, name_in_layer: string, fileNode: CompositeGeneratorNode): void {
+    if(subtitle.$type === 'Subtitle'){
+        // Add default effects
+        fileNode.append(`scene["${name_in_layer}"].add_effect(mv.effect.DropShadow(offset=5.0, angle=0, color=(0, 0, 0), opacity=1.0))`, NL);
+        fileNode.append(`scene["${name_in_layer}"].add_effect(mv.effect.DropShadow(offset=5.0, angle=90, color=(0, 0, 0), opacity=1.0))`, NL);
+        fileNode.append(`scene["${name_in_layer}"].add_effect(mv.effect.DropShadow(offset=5.0, angle=180, color=(0, 0, 0), opacity=1.0))`, NL);
+        fileNode.append(`scene["${name_in_layer}"].add_effect(mv.effect.DropShadow(offset=5.0, angle=270, color=(0, 0, 0), opacity=1.0))`, NL);
+    }
 }
 
 function generateAssetItem(item: AssetItem, varName: string, fileNode: CompositeGeneratorNode): void {
@@ -95,15 +136,17 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
         case 'Clip':
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
-            compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
-            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(clip, varName)})`, NL);
+            compileTransform(clip, clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
+            compileTime(clip,varName, fileNode);
+            fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
             break;
 
         case 'Image':
             const img = item as Image;
             fileNode.append(`${varName} = mv.layer.Image("${img.path}")`, NL);
-            compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
-            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(img, varName)})`, NL);
+            compileTransform(img, img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
+            compileTime(img,varName, fileNode);
+            fileNode.append(`scene.add_layer(${varName}_item, transform=${varName}_transform)`, NL);
             break;
 
         case 'Text':
@@ -112,17 +155,32 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const color = txt.color ? processColor(txt.color) : "#ffffff";
             const font_size = txt.size ? `${txt.size}` : 30;
             fileNode.append(`${varName} = mv.layer.Text("${text}", font_size=${font_size}, color="${color}")`, NL);
-            compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
-            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform ${compileTime(txt, varName)})`, NL);
+            compileTransform(txt, txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
+            compileTime(txt,varName, fileNode);
+            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform, offset=${varName}_start, end_time=${varName}_end)`, NL);
             break;
         case "Audio":
             const audio = item as Audio;
             fileNode.append(`${varName} = mv.layer.Audio("${audio.path}")`, NL);
-            fileNode.append(`scene.add_layer(${varName} ${compileTime(audio, varName)})`, NL);
+            compileTime(audio,varName, fileNode);
+            fileNode.append(`scene.add_layer(${varName}, offset=${varName}_start, end_time=${varName}_end)`, NL);
             break;
         case "Transition":
             compileTransition(item as Transition, varName, fileNode);
+            break;
 
+        // Subtitle is a text with specific parameters by default (could be overriden, of course)
+        case 'Subtitle':
+            const subtitle = item as Subtitle;
+            const subtxt = subtitle.text ? subtitle.text : '';
+            const subcolor = subtitle.color ? processColor(subtitle.color) : "#ffffff";
+            const subfont_size = subtitle.size ? `${subtitle.size}` : 'font_size';
+            const subFont = 'Arial';
+            fileNode.append(`${varName} = mv.layer.Text("${subtxt}", font_size=${subfont_size}, color="${subcolor}", font_family="${subFont}")`, NL);
+            compileTransform(subtitle, subtitle.position, subtitle.coor_x, subtitle.coor_y, subtitle.scale_x, subtitle.scale_y, subtitle.scale, undefined, subtitle.opacity, varName, fileNode);
+            compileTime(item, varName, fileNode);
+            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform, name="${varName}", offset=${varName}_start, end_time=${varName}_end)`, NL);
+            break;
     }
 }
 
@@ -148,7 +206,6 @@ function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
         item.scale_x = element.scale_x ? element.scale_x : item.scale_x;
         item.scale_y = element.scale_y ? element.scale_y : item.scale_y;
         item.scale = element.scale ? element.scale : item.scale;
-        item.rotate = element.rotate ? element.rotate : item.rotate;
         item.opacity = element.opacity ? element.opacity : item.opacity;
     }
     item.from = element.from ? element.from : item.from;
@@ -161,6 +218,7 @@ function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
 }
 
 function compileTransform(
+    element: AssetItem,
     position: string | undefined,
     coor_x: number | undefined,
     coor_y: number | undefined,
@@ -172,7 +230,13 @@ function compileTransform(
     varName: string,
     fileNode: CompositeGeneratorNode
 ): void {
-    const processedPosition = processPosition(position, coor_x, coor_y);
+    let processedPosition = undefined;
+    if(element.$type == 'Subtitle'){
+        processedPosition = '(position_x, position_y)';
+    }
+    else{
+        processedPosition = processPosition(position, coor_x, coor_y);
+    }
     const processedScale = processScale(scale_x, scale_y, scale);
     // Default rotation is 0
     rotate = rotate ? rotate : 0;
@@ -181,17 +245,25 @@ function compileTransform(
     fileNode.append(`${varName}_transform = mv.Transform(position=${processedPosition}, scale=${processedScale}, rotation=${rotate}, opacity=${opacity})`, NL);
 }
 
-function compileTime(element: AssetItem, varName: string): string {
+function compileTime(element: AssetItem, varName: string, fileNode: CompositeGeneratorNode) {
     const hasFrom = element.from !== undefined;
     const hasTo = element.to !== undefined;
 
-    if (hasFrom || hasTo) {
+    if(element.$type == 'Subtitle' || element.$type == 'Text' || element.$type == 'Audio'){
         const start = hasFrom ? element.from : 0;
-        const end = hasTo ? element.to : `${varName}.duration`;
-        return `, offset=${start}, start_time=0.0, end_time=${end}`;
+        const end = hasTo ? element.to : `None`;
+        fileNode.append(`${varName}_start = ${start}`, NL);
+        fileNode.append(`${varName}_end = ${end}`, NL);
     }
-    // default start time is 0
-    return `, offset=0, start_time=0.0, end_time=${varName}.duration`;
+    else{
+        if (hasFrom || hasTo) {
+            const start = hasFrom ? element.from : 0;
+            const end = hasTo ? element.to : `${varName}.duration`;
+            fileNode.append(`${varName}_item = mv.layer.LayerItem(${varName}, offset=${start}, end_time=${end})`, NL);
+        } else {
+            fileNode.append(`${varName}_item = mv.layer.LayerItem(${varName})`, NL);
+        }
+    }
 }
 
 function processScale(scale_x: number | undefined, scale_y: number | undefined, scale: number | undefined): string {
