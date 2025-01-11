@@ -1,0 +1,8 @@
+video named videoScenarioTest {
+    define ref1 as image "../api_sample/image_sample/sid.png" start 1.0 end 2.0
+    image "../api_sample/image_sample/doggy.png" coordinate x=960 y=250 lasts for 1.0
+    text "COUCOU" color BLUE size 50 coordinate x=960 y=250 start 1.0 end 4.0
+    text "COUCOU" color RED size 50 position CENTER lasts for 1.0
+    image "../api_sample/image_sample/doggy.png" coordinate x=960 y=500 lasts for 2.0 since ref1
+    text "COUCOU" color GREEN size 50 coordinate x=960 y=500 lasts for 2.0 since ref1
+}

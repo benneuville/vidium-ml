@@ -7,8 +7,10 @@ video named videoScenarioSimple {
     text "Hello World" color RED size 60 position CENTER scale 2.0 rotate 90.0 opacity 0.3 start 1.0 end 4.0
     audio "../api_sample/audio_sample/audio1.mp3" start 1.0 end 4.0
     transition FADE start 1.5 end 2.5
-    subtitle "sub1" start 0.0 end 1.0
+    define ref1 as subtitle "sub1" lasts for 2.0
+    //define ref1 as subtitle "sub1" start 0.0 end 1.0
     subtitle "sub2" start 1.5 end 2.5
-    subtitle "sub3" lasts for 2.5
+    subtitle "sub3" lasts for 1.0
+    text "HELLO" lasts for 2.0 since ref1
     //subtitle "sub3" start 2.5 end 5.0
 }
