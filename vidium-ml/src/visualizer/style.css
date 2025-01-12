@@ -126,6 +126,10 @@ option {
     background-color: lightblue;
 }
 
+.subtitle {
+    background-color: lightpink;
+}
+
 
 .loading-spinner {
     display: none;

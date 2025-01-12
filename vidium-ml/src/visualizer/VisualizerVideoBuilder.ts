@@ -1,4 +1,4 @@
-import { AssetElement, Audio, Video, Clip, Image, Text, Transition, UseAsset, AssetItem, isDefineAsset, isUseAsset, DefineAsset } from '../language-server/generated/ast';
+import { AssetElement, Audio, Video, Clip, Image, Text, Transition, UseAsset, AssetItem, isDefineAsset, isUseAsset, DefineAsset, Subtitle } from '../language-server/generated/ast';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 
 type SimplifiedAsset = {
@@ -133,6 +133,9 @@ export class VisualizerVideoBuilder {
             case 'Text':
                 htmlcontent += await this.addText(element, index);
                 break;
+            case 'Subtitle':
+                htmlcontent += await this.addSubTitle(element, index);
+                break;
             case 'Transition':
                 htmlcontent += await this.addTransition(element, index);
                 break;
@@ -187,7 +190,7 @@ export class VisualizerVideoBuilder {
     addImage(element: Image | SimplifiedAsset, index: number = 0) {
         if(!element) return '';
         let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
-        let width ="calc(" + (element.to ?((element.to) * this.__ruler2_space * this.__ruler_x - (element.from || 0) * this.__ruler2_space * this.__ruler_x) + "px" : " 100% - " + left) + " - " + this.__size_asset_element_padding + "px)";
+        let width ="calc(" +  + "px" : " 100% - " + left) + " - " + this.__size_asset_element_padding + "px)";
         let path = element.path?.split('/').pop();
         let top = "0";
         // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
@@ -200,9 +203,21 @@ export class VisualizerVideoBuilder {
         let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
         let width ="calc(" + (element.to ?((element.to) * this.__ruler2_space * this.__ruler_x) + "px" : " 100% - " + left) + " - " + this.__size_asset_element_padding + "px)";
         let top = "0";
+
         // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
         let height = this.__size_asset_element + "px";
         return `<div class="text" style="left: ${left}; top: ${top}; width: ${width}; height: ${height};">${element.$type} : ${element.text}</div>`;
+    }
+
+    addSubTitle(element: Subtitle | SimplifiedAsset, index: number = 0) {
+        if(!element) return '';
+        let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
+
+        let width ="calc(" + (element.to ?((element.to) * this.__ruler2_space * this.__ruler_x) + "px" : " 100% - " + left) + " - " + this.__size_asset_element_padding + "px)";
+        let top = "0";
+        // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
+        let height = this.__size_asset_element + "px";
+        return `<div class="subtitle" style="left: ${left}; top: ${top}; width: ${width}; height: ${height};">${element.$type} : ${element.text}</div>`;
     }
 
     addTransition(element: Transition | SimplifiedAsset, index: number = 0) {
@@ -244,6 +259,23 @@ export class VisualizerVideoBuilder {
             return await this.addAssetElement(SimplifiedAsset, index);
         }
         return '';
+    }
+
+    calculate_duration(element : Image | Subtitle | Text | Transition) : string {
+        let duration = "";
+        let start = 0;
+        if(element.from) {
+            start = element.from;
+        }
+        if(element.to) {
+            duration = element.to - start + "";
+        } else if(element.duration) {
+            duration = element.duration + "";
+        } else {
+            duration = "100%";
+        }
+        
+        return duration
     }
 }
 
