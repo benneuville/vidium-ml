@@ -431,8 +431,9 @@ function computeTime(elements: AssetElement[]): number {
         function handleAbsoluteTime(element: AssetItem): void {
             const startAt = hasFrom ? element.from : 0;
             // @ts-ignore
-            const end = hasTo ? (element.to - startAt) : element.duration;
-            assignAbsoluteTime(element, startAt, element.to, end);
+            const end = hasTo ? (element.to - startAt) : ABSOLUTE_DURATION;
+            // @ts-ignore
+            assignAbsoluteTime(element, startAt, end , end - startAt);
         }
 
         function getVideoDuration(filename: string): number {
