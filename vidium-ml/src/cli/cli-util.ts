@@ -16,7 +16,7 @@ export async function extractDocument(fileName: string, services: LangiumService
         process.exit(1);
     }
 
-    const uri = URI.file(fileName);
+    const uri = URI.file(path.resolve(fileName));
 
     services.shared.workspace.LangiumDocuments.deleteDocument(uri);
 
