@@ -13,6 +13,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
     private _lockedFile?: vscode.Uri;
     private _videoData: Video | undefined;
     private _visualizerBuilder = new VisualizerVideoBuilder();
+    
 
     constructor(private readonly context: vscode.ExtensionContext, private services : VidiumMLServices) {
     }

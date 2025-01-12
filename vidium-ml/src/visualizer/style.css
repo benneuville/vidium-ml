@@ -108,26 +108,32 @@ option {
 
 .clip {
     background-color: lightyellow;
+    border-bottom: solid 2px rgb(230, 230, 141);
 }
 
 .image {
     background-color: thistle;
+    border-bottom: solid 2px rgb(221, 147, 221);
 }
 
 .text {
     background-color: lightgreen;
+    border-bottom: solid 2px rgb(109, 197, 109);
 }
 
 .transition {
     background-color: lightcoral;
+    border-bottom: solid 2px rgb(180, 95, 80);
 }
 
 .audio {
     background-color: lightblue;
+    border-bottom: solid 2px rgb(89, 150, 188);
 }
 
 .subtitle {
     background-color: lightpink;
+    border-bottom: solid 2px rgb(206, 121, 134);
 }
 
 
