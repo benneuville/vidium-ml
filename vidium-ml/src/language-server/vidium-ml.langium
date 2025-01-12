@@ -36,7 +36,7 @@ UseAsset:
     (OpacityParam)?;
 
 AssetItem:
-    Clip | Image | Text | Audio | Transition;
+    Clip | Image | Text | Audio | Transition | Subtitle;
 
 // =========
 //  PARAMETERS
@@ -49,7 +49,7 @@ fragment SizeParam:
     'size' size=INT;
 
 fragment TimeParam:
-    ('start' from=FLOAT)? ('end' to=FLOAT)?;
+    (('start' from=FLOAT)? ('end' to=FLOAT)?) | ('lasts' 'for' duration=FLOAT ('since' reference=[DefineAsset:ID])?);
 
 fragment PositionParam:
     'position' position=POSITION;
@@ -75,29 +75,29 @@ Text:
     'text' text=STRING
     (ColorParam)?
     (SizeParam)?
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam)?;
 
 // >> CLIP
 Clip:
     'clip' path=STRING
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam);
 
 // >> IMAGE
 Image:
     'image' path=STRING
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam)?;
 
 Audio:
     'audio' path=STRING
@@ -106,6 +106,16 @@ Audio:
 Transition:
     'transition' type=TRANSITION
     (TimeParam);
+
+// >> SUBTITLE
+Subtitle:
+    'subtitle' text=STRING
+    (ColorParam)?
+    (SizeParam)?
+    (PositionParam | CoordinateParam)?
+    (ScaleParam)?
+    (OpacityParam)?
+    (TimeParam)?;
 
 // ===========
 //  TERMINALS

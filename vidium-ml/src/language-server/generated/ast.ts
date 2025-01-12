@@ -22,7 +22,7 @@ export function isAssetElement(item: unknown): item is AssetElement {
     return reflection.isInstance(item, AssetElement);
 }
 
-export type AssetItem = Audio | Clip | Image | Text | Transition;
+export type AssetItem = Audio | Clip | Image | Subtitle | Text | Transition;
 
 export const AssetItem = 'AssetItem';
 
@@ -46,8 +46,10 @@ export function isAssetComposition(item: unknown): item is AssetComposition {
 export interface Audio extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Audio';
+    duration?: number
     from?: number
     path: string
+    reference?: Reference<DefineAsset>
     to?: number
 }
 
@@ -62,10 +64,12 @@ export interface Clip extends AstNode {
     readonly $type: 'Clip';
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     path: string
     position?: string
+    reference?: Reference<DefineAsset>
     rotate?: number
     scale?: number
     scale_x?: number
@@ -97,10 +101,12 @@ export interface Image extends AstNode {
     readonly $type: 'Image';
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     path: string
     position?: string
+    reference?: Reference<DefineAsset>
     rotate?: number
     scale?: number
     scale_x?: number
@@ -114,15 +120,42 @@ export function isImage(item: unknown): item is Image {
     return reflection.isInstance(item, Image);
 }
 
+export interface Subtitle extends AstNode {
+    readonly $container: AssetComposition | DefineAsset | Video;
+    readonly $type: 'Subtitle';
+    color?: string
+    coor_x?: number
+    coor_y?: number
+    duration?: number
+    from?: number
+    opacity?: number
+    position?: string
+    reference?: Reference<DefineAsset>
+    scale?: number
+    scale_x?: number
+    scale_y?: number
+    size?: number
+    text: string
+    to?: number
+}
+
+export const Subtitle = 'Subtitle';
+
+export function isSubtitle(item: unknown): item is Subtitle {
+    return reflection.isInstance(item, Subtitle);
+}
+
 export interface Text extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Text';
     color?: string
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     position?: string
+    reference?: Reference<DefineAsset>
     rotate?: number
     scale?: number
     scale_x?: number
@@ -141,7 +174,9 @@ export function isText(item: unknown): item is Text {
 export interface Transition extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Transition';
+    duration?: number
     from?: number
+    reference?: Reference<DefineAsset>
     to?: number
     type: string
 }
@@ -158,6 +193,7 @@ export interface UseAsset extends AstNode {
     color?: string
     coor_x?: number
     coor_y?: number
+    duration?: number
     from?: number
     opacity?: number
     position?: string
@@ -197,6 +233,7 @@ export interface VidiumMlAstType {
     Clip: Clip
     DefineAsset: DefineAsset
     Image: Image
+    Subtitle: Subtitle
     Text: Text
     Transition: Transition
     UseAsset: UseAsset
@@ -206,7 +243,7 @@ export interface VidiumMlAstType {
 export class VidiumMlAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Asset', 'AssetComposition', 'AssetElement', 'AssetItem', 'Audio', 'Clip', 'DefineAsset', 'Image', 'Text', 'Transition', 'UseAsset', 'Video'];
+        return ['Asset', 'AssetComposition', 'AssetElement', 'AssetItem', 'Audio', 'Clip', 'DefineAsset', 'Image', 'Subtitle', 'Text', 'Transition', 'UseAsset', 'Video'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -218,6 +255,7 @@ export class VidiumMlAstReflection extends AbstractAstReflection {
             case Audio:
             case Clip:
             case Image:
+            case Subtitle:
             case Text:
             case Transition: {
                 return this.isSubtype(AssetItem, supertype);
@@ -236,6 +274,12 @@ export class VidiumMlAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
+            case 'Audio:reference':
+            case 'Clip:reference':
+            case 'Image:reference':
+            case 'Subtitle:reference':
+            case 'Text:reference':
+            case 'Transition:reference':
             case 'UseAsset:reference': {
                 return DefineAsset;
             }

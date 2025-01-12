@@ -30,12 +30,6 @@
                 "path": "./syntaxes/vidium-ml.tmLanguage.json"
             }
         ],
-        "commands": [
-            {
-                "command": "vidiumML-Visualizer-view.update",
-                "title": "Update VidiumML Visualizer"
-            }
-        ],
         "viewsContainers": {
             "panel": [
                 {
@@ -83,6 +77,7 @@
         "langium:watch": "langium generate --watch"
     },
     "dependencies": {
+        "@types/fluent-ffmpeg": "^2.1.27",
         "chalk": "^4.1.2",
         "chevrotain": "^10.4.1",
         "commander": "^8.0.0",

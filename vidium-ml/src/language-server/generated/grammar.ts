@@ -33,7 +33,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@24"
+                "$ref": "#/rules@25"
               },
               "arguments": []
             }
@@ -200,7 +200,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@24"
+                "$ref": "#/rules@25"
               },
               "arguments": []
             }
@@ -252,7 +252,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@24"
+                  "$ref": "#/rules@25"
                 },
                 "arguments": []
               },
@@ -376,6 +376,13 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
               "$ref": "#/rules@19"
             },
             "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@20"
+            },
+            "arguments": []
           }
         ]
       },
@@ -404,7 +411,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@22"
+                "$ref": "#/rules@23"
               },
               "arguments": []
             }
@@ -435,7 +442,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@26"
+                "$ref": "#/rules@27"
               },
               "arguments": []
             }
@@ -453,51 +460,110 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
       "name": "TimeParam",
       "fragment": true,
       "definition": {
-        "$type": "Group",
+        "$type": "Alternatives",
         "elements": [
           {
             "$type": "Group",
             "elements": [
               {
-                "$type": "Keyword",
-                "value": "start"
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "start"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "from",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@26"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ],
+                "cardinality": "?"
               },
               {
-                "$type": "Assignment",
-                "feature": "from",
-                "operator": "=",
-                "terminal": {
-                  "$type": "RuleCall",
-                  "rule": {
-                    "$ref": "#/rules@25"
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "end"
                   },
-                  "arguments": []
-                }
+                  {
+                    "$type": "Assignment",
+                    "feature": "to",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@26"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ],
+                "cardinality": "?"
               }
-            ],
-            "cardinality": "?"
+            ]
           },
           {
             "$type": "Group",
             "elements": [
               {
                 "$type": "Keyword",
-                "value": "end"
+                "value": "lasts"
+              },
+              {
+                "$type": "Keyword",
+                "value": "for"
               },
               {
                 "$type": "Assignment",
-                "feature": "to",
+                "feature": "duration",
                 "operator": "=",
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@25"
+                    "$ref": "#/rules@26"
                   },
                   "arguments": []
                 }
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "since"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "reference",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "CrossReference",
+                      "type": {
+                        "$ref": "#/rules@4"
+                      },
+                      "terminal": {
+                        "$type": "RuleCall",
+                        "rule": {
+                          "$ref": "#/rules@25"
+                        },
+                        "arguments": []
+                      },
+                      "deprecatedSyntax": false
+                    }
+                  }
+                ],
+                "cardinality": "?"
               }
-            ],
-            "cardinality": "?"
+            ]
           }
         ]
       },
@@ -525,7 +591,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@23"
+                "$ref": "#/rules@24"
               },
               "arguments": []
             }
@@ -560,7 +626,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@26"
+                "$ref": "#/rules@27"
               },
               "arguments": []
             }
@@ -576,7 +642,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@26"
+                "$ref": "#/rules@27"
               },
               "arguments": []
             }
@@ -617,7 +683,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@25"
+                        "$ref": "#/rules@26"
                       },
                       "arguments": []
                     }
@@ -633,7 +699,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@25"
+                        "$ref": "#/rules@26"
                       },
                       "arguments": []
                     }
@@ -647,7 +713,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@25"
+                    "$ref": "#/rules@26"
                   },
                   "arguments": []
                 }
@@ -680,7 +746,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@25"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             }
@@ -711,7 +777,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@25"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             }
@@ -741,7 +807,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@27"
+                "$ref": "#/rules@28"
               },
               "arguments": []
             }
@@ -758,14 +824,6 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@8"
-            },
-            "arguments": [],
-            "cardinality": "?"
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@9"
             },
             "arguments": [],
             "cardinality": "?"
@@ -810,6 +868,14 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@14"
+            },
+            "arguments": [],
+            "cardinality": "?"
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@9"
             },
             "arguments": [],
             "cardinality": "?"
@@ -840,18 +906,10 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@27"
+                "$ref": "#/rules@28"
               },
               "arguments": []
             }
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@9"
-            },
-            "arguments": [],
-            "cardinality": "?"
           },
           {
             "$type": "Alternatives",
@@ -896,6 +954,13 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             },
             "arguments": [],
             "cardinality": "?"
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@9"
+            },
+            "arguments": []
           }
         ]
       },
@@ -923,18 +988,10 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@27"
+                "$ref": "#/rules@28"
               },
               "arguments": []
             }
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@9"
-            },
-            "arguments": [],
-            "cardinality": "?"
           },
           {
             "$type": "Alternatives",
@@ -976,6 +1033,14 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@14"
+            },
+            "arguments": [],
+            "cardinality": "?"
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@9"
             },
             "arguments": [],
             "cardinality": "?"
@@ -1006,7 +1071,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@27"
+                "$ref": "#/rules@28"
               },
               "arguments": []
             }
@@ -1045,7 +1110,7 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@21"
+                "$ref": "#/rules@22"
               },
               "arguments": []
             }
@@ -1056,6 +1121,97 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
               "$ref": "#/rules@9"
             },
             "arguments": []
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "Subtitle",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "subtitle"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "text",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@28"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@7"
+            },
+            "arguments": [],
+            "cardinality": "?"
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@8"
+            },
+            "arguments": [],
+            "cardinality": "?"
+          },
+          {
+            "$type": "Alternatives",
+            "elements": [
+              {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@10"
+                },
+                "arguments": []
+              },
+              {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@11"
+                },
+                "arguments": []
+              }
+            ],
+            "cardinality": "?"
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@12"
+            },
+            "arguments": [],
+            "cardinality": "?"
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@14"
+            },
+            "arguments": [],
+            "cardinality": "?"
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@9"
+            },
+            "arguments": [],
+            "cardinality": "?"
           }
         ]
       },

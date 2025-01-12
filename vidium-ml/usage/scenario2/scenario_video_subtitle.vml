@@ -1,0 +1,3 @@
+video named videoScenarioSubtitle {
+    subtitle "sub1" start 1.0 end 4.0
+}

@@ -5,6 +5,8 @@ api_sample/videos_sample/*
 vmlenv
 vmlenv/*
 vidium-ml/generated_video/*
+vidium-ml/generated/*
 api_sample/video_sample/*
 .idea
 venv
+vidium-ml/src/language-server/generated/*
