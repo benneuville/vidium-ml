@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { execSync } from 'child_process';
 import {CompositeGeneratorNode, NL, toString} from 'langium';
 import path from 'path';
 import {
@@ -43,16 +44,21 @@ let assetRefMap: Map<string, AssetItem> = new Map();
 // Map of container_index (used as asset id) to AbsoluteTime
 let absoluteTimeRefMap: Map<string, AbsoluteTime> = new Map();
 let previousElement: AssetItem;
-const ABSOLUTE_DURATION = 5.0;
+let ABSOLUTE_DURATION = 5.0;
 
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
+    // Compute time for each element, as absolute time and return the absolute duration
+    // This one to compute the absolute duration
+    ABSOLUTE_DURATION = computeTime(video.elements);
+    // This one to recompute the absolute time for each element with the correct value of absolute duration
+    computeTime(video.elements);
     // computeTotalDuration(video.elements);
     fileNode.append('import movis as mv', NL, NL);
     // Create composition
     fileNode.append('# Create composition', NL);
     fileNode.append('video_width = 1920', NL);
     fileNode.append('video_height = 1080', NL);
-    fileNode.append('scene = mv.layer.Composition(size=(video_width, video_height), duration=5.0)', NL, NL);
+    fileNode.append(`scene = mv.layer.Composition(size=(video_width, video_height), duration=${ABSOLUTE_DURATION})`, NL, NL);
 
     // Process elements
     generateElements(video.elements, fileNode);
@@ -138,15 +144,14 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
             compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
-            fileNode.append(`scene.add_layer(${varName}, name="${varName}",  transform=${varName}_transform ${compileTime(clip, varName)})`, NL);
+            fileNode.append(`scene.add_layer(${varName}, name="${varName}",  transform=${varName}_transform ${compileTime(clip)})`, NL);
             break;
 
         case 'Image':
             const img = item as Image;
             fileNode.append(`${varName} = mv.layer.Image("${img.path}")`, NL);
             compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
-            compileTime(img, varName);
-            fileNode.append(`scene.add_layer(${varName}, name="${varName}", transform=${varName}_transform ${compileTime(img, varName)})`, NL);
+            fileNode.append(`scene.add_layer(${varName}, name="${varName}", transform=${varName}_transform ${compileTime(img)})`, NL);
             break;
 
         case 'Text':
@@ -156,13 +161,12 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const font_size = txt.size ? `${txt.size}` : 30;
             fileNode.append(`${varName} = mv.layer.Text("${text}", font_size=${font_size}, color="${color}")`, NL);
             compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
-            compileTime(txt, varName);
-            fileNode.append(`scene.add_layer(${varName}, name="${varName}", transform=${varName}_transform ${compileTime(txt, varName)})`, NL);
+            fileNode.append(`scene.add_layer(${varName}, name="${varName}", transform=${varName}_transform ${compileTime(txt)})`, NL);
             break;
         case "Audio":
             const audio = item as Audio;
             fileNode.append(`${varName} = mv.layer.Audio("${audio.path}")`, NL);
-            fileNode.append(`scene.add_layer(${varName}, name="${varName}" ${compileTime(audio, varName)})`, NL);
+            fileNode.append(`scene.add_layer(${varName}, name="${varName}" ${compileTime(audio)})`, NL);
             break;
         case "Transition":
             compileTransition(item as Transition, varName, fileNode);
@@ -178,7 +182,7 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             fileNode.append(`${varName} = mv.layer.Text("${subTxt}", font_size=${subFontSize}, color="${subColor}", font_family="${subFont}")`, NL);
             fileNode.append(`${varName}_transform = mv.Transform(position=(video_width / 2, video_height - (${subFontSize} / 2) - 20), scale=(1.0, 1.0), rotation=0, opacity=1.0)`, NL);
             // The "_sub" suffix is added to the name to avoid conflicts with other elements
-            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform, name="${varName}" ${compileTime(subtitle, varName)})`, NL);
+            fileNode.append(`scene.add_layer(${varName}, transform=${varName}_transform, name="${varName}" ${compileTime(subtitle)})`, NL);
             computeSubtitleStyle(subtitle, varName, fileNode);
             break;
     }
@@ -254,6 +258,7 @@ function assignAbsoluteTime(element: AssetItem, absoluteStart: number | undefine
     if (id === undefined) {
         id = element.$container.$containerIndex?.toString();
     }
+    console.log("ID: ", id);
     absoluteTimeRefMap.set(<string>id, <AbsoluteTime>{
         absoluteStart: absoluteStart,
         absoluteEnd: absoluteEnd,
@@ -261,51 +266,16 @@ function assignAbsoluteTime(element: AssetItem, absoluteStart: number | undefine
     });
 }
 
-function compileTime(element: AssetItem, varName: string): string {
-    const hasFrom = element.from !== undefined;
-    const hasTo = element.to !== undefined;
-    const hasDuration = element.duration !== undefined;
-
-    if (hasDuration) {
-        return handleRelativeTime(element, varName);
-    } else if (hasFrom || hasTo) {
-        return handleAbsoluteTime(element, varName);
-    } else {
-        // Unknown time
-        assignAbsoluteTime(element, 0, ABSOLUTE_DURATION, ABSOLUTE_DURATION);
-        return `, offset=0, start_time=0.0, end_time=${ABSOLUTE_DURATION}`;
+function compileTime(element: AssetItem): string {
+    let id = element.$containerIndex?.toString();
+    // If the element has no container index (in case of DefineAsset), use the container index of the container (the referenced element)
+    if (id === undefined) {
+        id = element.$container.$containerIndex?.toString();
     }
 
-    function handleRelativeTime(element: AssetItem, varName: string): string {
-        let offset = 0;
-        const referenceName = element.reference?.ref?.name;
-        // 'lasts for _ since _'
-        if (referenceName && assetRefMap.has(referenceName)) {
-            const referencedAsset = assetRefMap.get(referenceName);
-            offset = (referencedAsset?.to ? referencedAsset?.to : ABSOLUTE_DURATION);
-            // @ts-ignore
-            assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
-            return `, offset=${offset}, start_time=0.0, end_time=${element.duration}`;
-        }
-        // 'lasts for _'
-        else {
-            // Compute offset to be just after the previous asset
-            offset = (previousElement?.to ? previousElement?.to : ABSOLUTE_DURATION);
-            // @ts-ignore
-            assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
-            return `, offset=${offset}, start_time=0.0, end_time=${element.duration}`;
-        }
-    }
-
-    function handleAbsoluteTime(element: AssetItem, varName: string): string {
-        const startAt = hasFrom ? element.from : 0;
-        // @ts-ignore
-        const end = hasTo ? (element.to - startAt) : element.duration;
-        console.log("=========================================================")
-        console.log(element)
-        assignAbsoluteTime(element, startAt, element.to, end);
-        return `, offset=${startAt}, start_time=0.0, end_time=${end}`;
-    }
+    const start = absoluteTimeRefMap.get(<string>id)?.absoluteStart;
+    const end = absoluteTimeRefMap.get(<string>id)?.duration;
+    return `, offset=${start}, start_time=0.0, end_time=${end}`;
 }
 
 
@@ -354,40 +324,42 @@ function processColor(color: string): string {
             return '#00ff00';
         case 'BLUE':
             return '#0000ff';
+        case 'WHITE':
+            return '#ffffff';
+        case 'BLACK':
+            return '#000000';
         default:
             return '#000000';
     }
 }
 
-function computeTotalDuration(elements: AssetElement[]): void {
-    let assetTimeRefMap = new Map();
-    let previousTimeElement: AssetItem;
-    let maxDuration = 0;
+function computeTime(elements: AssetElement[]): number {
     elements?.forEach((element, index) => {
-
         switch (element.$type) {
             case 'AssetComposition':
                 // Handle composition
-                computeElementDuration(element.left as AssetItem);
-                computeElementDuration(element.right as AssetItem);
+                computeTime([element.left]);
+                computeTime([element.right]);
                 break;
 
             case 'DefineAsset':
                 // Handle asset reference
-                assetTimeRefMap.set(element.name, element.item);
-                computeElementDuration(element.item);
-                previousTimeElement = element.item;
+                assetRefMap.set(element.name, element.item);
+
+                // Handle asset generation
+                computeAbsoluteTime(element.item);
+                assignPreviousElement(element);
                 break;
 
             case 'UseAsset':
                 // Handle asset de-reference
                 const referenceName = element.reference.ref?.name
-                if (referenceName && assetTimeRefMap.has(referenceName)) {
-                    const referencedAsset = assetTimeRefMap.get(referenceName);
+                if (referenceName && assetRefMap.has(referenceName)) {
+                    const referencedAsset = assetRefMap.get(referenceName);
                     // Handle asset generation
                     if (referencedAsset) {
                         overrideAssetItemParameters(referencedAsset, element);
-                        computeElementDuration(referencedAsset);
+                        computeAbsoluteTime(referencedAsset);
                         break;
                     }
                 }
@@ -398,15 +370,24 @@ function computeTotalDuration(elements: AssetElement[]): void {
                 // Direct AssetItem cases
                 // Subtitle is handled separately, because must be on top of all other elements
                 if (element.$type !== 'Subtitle') {
-                    computeElementDuration(element);
-                    previousTimeElement = element as AssetItem;
+                    computeAbsoluteTime(element);
+                    assignPreviousElement(element);
                 }
                 break;
         }
     });
 
-    function computeElementDuration(element: AssetItem): void {
-        let maxDuration = 0;
+    // Compute the absolute duration
+    let max = 0;
+    absoluteTimeRefMap.forEach((value) => {
+        if (value.absoluteEnd > max) {
+            max = value.absoluteEnd;
+        }
+    });
+    console.log("Max: ", max);
+    return max;
+
+    function computeAbsoluteTime(element: AssetItem): void {
         const hasFrom = element.from !== undefined;
         const hasTo = element.to !== undefined;
         const hasDuration = element.duration !== undefined;
@@ -416,30 +397,54 @@ function computeTotalDuration(elements: AssetElement[]): void {
         } else if (hasFrom || hasTo) {
             handleAbsoluteTime(element);
         } else {
-            // Unknown duration
+            // Unknown time
+            if (element.$type === 'Audio' || element.$type === 'Clip') {
+                const duration = getVideoDuration(element.path);
+                console.log("Duration: ", duration);
+                assignAbsoluteTime(element, 0, duration, duration);
+            } else {
+                assignAbsoluteTime(element, 0, ABSOLUTE_DURATION, ABSOLUTE_DURATION);
+            }
         }
 
-        function handleRelativeTime(element: AssetItem) {
+        function handleRelativeTime(element: AssetItem): void {
+            let offset = 0;
             const referenceName = element.reference?.ref?.name;
             // 'lasts for _ since _'
             if (referenceName && assetRefMap.has(referenceName)) {
-
+                const referencedAsset = assetRefMap.get(referenceName);
+                offset = (referencedAsset?.to ? referencedAsset?.to : ABSOLUTE_DURATION);
+                // @ts-ignore
+                assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
             }
             // 'lasts for _'
             else {
+                // Compute offset to be just after the previous asset
+                offset = (previousElement?.to ? previousElement?.to : ABSOLUTE_DURATION);
+                // @ts-ignore
+                assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
             }
         }
 
-
-        function handleAbsoluteTime(element: AssetItem) {
-
+        function handleAbsoluteTime(element: AssetItem): void {
+            const startAt = hasFrom ? element.from : 0;
+            // @ts-ignore
+            const end = hasTo ? (element.to - startAt) : element.duration;
+            assignAbsoluteTime(element, startAt, element.to, end);
         }
 
-        function assignNewDuration(duration: number): void {
-            if (duration > maxDuration) {
-                maxDuration = duration;
-            }
+        function getVideoDuration(filename: string): number {
+            const command = `ffprobe -v quiet -print_format json -show_format "${filename}"`;
+            const result = execSync(command);
+            const metadata = JSON.parse(result.toString()) as FFProbeOutput;
+            return parseFloat(metadata.format.duration);
         }
     }
+}
+
+interface FFProbeOutput {
+    format: {
+        duration: string;
+    };
 }
 
