@@ -373,11 +373,8 @@ function computeTime(elements: AssetElement[]): number {
 
             default:
                 // Direct AssetItem cases
-                // Subtitle is handled separately, because must be on top of all other elements
-                if (element.$type !== 'Subtitle') {
-                    computeAbsoluteTime(element);
-                    assignPreviousElement(element);
-                }
+                computeAbsoluteTime(element);
+                assignPreviousElement(element);
                 break;
         }
     });

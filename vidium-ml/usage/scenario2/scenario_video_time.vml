@@ -1,10 +1,12 @@
 video named videoScenarioTime {
     clip "../api_sample/video_sample/sample1.mp4" start 0.0 end 1.0// lasts for the whole clip duration
     define ref1 as image "../api_sample/image_sample/sid.png" lasts for 2.0
+    subtitle "sub1" start 1.0 end 4.0
     image "../api_sample/image_sample/doggy.png" coordinate x=960 y=250 lasts for 1.0
     text "COUCOU" color BLUE size 50 coordinate x=960 y=250 start 1.0 end 4.0
     text "COUCOU" color RED size 50 position CENTER lasts for 2.0
     image "../api_sample/image_sample/doggy.png" coordinate x=960 y=500 lasts for 2.0 since ref1
+    subtitle "sub2" lasts for 2.0 since ref1
     text "COUCOUCOU" color WHITE size 50 coordinate x=960 y=500 // lasts for the whole video duration
     text "HELLO" color GREEN size 50 coordinate x=960 y=500 lasts for 2.0 // never displayed because it will happen after the end of the video (it reference a non temporal element (text) which is not specifying a time) = lasts for 2 sec after the total duration of the video
     text "COUCOU" color GREEN size 50 coordinate x=960 y=500 lasts for 2.0 since ref1
