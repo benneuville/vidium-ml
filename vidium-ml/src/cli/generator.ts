@@ -409,9 +409,11 @@ function computeTime(elements: AssetElement[]): number {
             absoluteStart = referenceEnd;
         } else {
             let referenceEnd = 0
-            if (previousElement !== undefined) {
+            if (!isFirstElement(element)) {
                 // use the reference of the previous element
                 referenceEnd = getReferenceEnd(previousElement);
+            } else {
+                console.log("No previous element");
             }
             absoluteStart = referenceEnd;
         }
@@ -459,6 +461,12 @@ function computeTime(elements: AssetElement[]): number {
                 }
             }
             return undefined;
+        }
+
+        function isFirstElement(element : AssetItem) : boolean {
+            // if id is '0'
+            const id = getIdFromElement(element);
+            return id === '0';
         }
     }
 }
