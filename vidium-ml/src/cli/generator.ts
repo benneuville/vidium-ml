@@ -267,15 +267,20 @@ function assignAbsoluteTime(element: AssetItem, absoluteStart: number | undefine
 }
 
 function compileTime(element: AssetItem): string {
+    let id = getIdFromElement(element);
+
+    const start = absoluteTimeRefMap.get(<string>id)?.absoluteStart;
+    const end = absoluteTimeRefMap.get(<string>id)?.duration;
+    return `, offset=${start}, start_time=0.0, end_time=${end}`;
+}
+
+function getIdFromElement(element: AssetItem): string {
     let id = element.$containerIndex?.toString();
     // If the element has no container index (in case of DefineAsset), use the container index of the container (the referenced element)
     if (id === undefined) {
         id = element.$container.$containerIndex?.toString();
     }
-
-    const start = absoluteTimeRefMap.get(<string>id)?.absoluteStart;
-    const end = absoluteTimeRefMap.get(<string>id)?.duration;
-    return `, offset=${start}, start_time=0.0, end_time=${end}`;
+    return <string>id;
 }
 
 
@@ -408,19 +413,19 @@ function computeTime(elements: AssetElement[]): number {
         }
 
         function handleRelativeTime(element: AssetItem): void {
-            let offset = 0;
+            let offset: number | undefined = 0;
             const referenceName = element.reference?.ref?.name;
             // 'lasts for _ since _'
             if (referenceName && assetRefMap.has(referenceName)) {
                 const referencedAsset = assetRefMap.get(referenceName);
-                offset = (referencedAsset?.to ? referencedAsset?.to : ABSOLUTE_DURATION);
+                offset = absoluteTimeRefMap.get(getIdFromElement(<AssetItem>referencedAsset))?.absoluteEnd;
                 // @ts-ignore
                 assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
             }
             // 'lasts for _'
             else {
                 // Compute offset to be just after the previous asset
-                offset = (previousElement?.to ? previousElement?.to : ABSOLUTE_DURATION);
+                offset = absoluteTimeRefMap.get(getIdFromElement(previousElement))?.absoluteEnd;
                 // @ts-ignore
                 assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
             }
