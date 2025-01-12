@@ -276,14 +276,6 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "cardinality": "?"
           },
           {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@9"
-            },
-            "arguments": [],
-            "cardinality": "?"
-          },
-          {
             "$type": "Alternatives",
             "elements": [
               {
@@ -323,6 +315,14 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@14"
+            },
+            "arguments": [],
+            "cardinality": "?"
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@9"
             },
             "arguments": [],
             "cardinality": "?"

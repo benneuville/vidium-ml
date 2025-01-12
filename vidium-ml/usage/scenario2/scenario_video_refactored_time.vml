@@ -1,6 +1,7 @@
 video named videoScenarioRefactoredTime {
     clip "../api_sample/video_sample/sample4.mp4" start 0.0 cut from 4.0 to 12.0
     define ref1 as image "../api_sample/image_sample/sid.png" lasts for 2.0
+    use ref1 start 4.0 end 6.0
     text "sub1" start 2.0 end 4.0
     text "sub2" start after ref1 lasts for 2.0
 }

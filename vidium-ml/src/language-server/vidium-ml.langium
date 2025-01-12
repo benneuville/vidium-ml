@@ -29,11 +29,11 @@ UseAsset:
     'use' reference=[DefineAsset:ID]
     (ColorParam)?
     (SizeParam)?
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam)?;
 
 AssetItem:
     Clip | Image | Text | Audio | Transition | Subtitle;

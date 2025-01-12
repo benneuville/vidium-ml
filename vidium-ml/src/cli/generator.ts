@@ -408,8 +408,11 @@ function computeTime(elements: AssetElement[]): number {
             const  referenceEnd = getReferenceEnd(referencedAsset);
             absoluteStart = referenceEnd;
         } else {
-            // use the reference of the previous element
-            const referenceEnd = getReferenceEnd(previousElement);
+            let referenceEnd = 0
+            if (previousElement !== undefined) {
+                // use the reference of the previous element
+                referenceEnd = getReferenceEnd(previousElement);
+            }
             absoluteStart = referenceEnd;
         }
 
@@ -457,48 +460,6 @@ function computeTime(elements: AssetElement[]): number {
             }
             return undefined;
         }
-
-        // if (hasDuration || hasCutFrom && hasCutTo) {
-        //     handleRelativeTime(element);
-        // } else if (hasFrom || hasTo) {
-        //     handleAbsoluteTime(element);
-        // } else {
-        //     // Unknown time
-        //     if (element.$type === 'Audio' || element.$type === 'Clip') {
-        //         const duration = getVideoDuration(element.path);
-        //         console.log("Duration: ", duration);
-        //         assignAbsoluteTime(element, 0, duration, duration);
-        //     } else {
-        //         assignAbsoluteTime(element, 0, ABSOLUTE_DURATION, ABSOLUTE_DURATION);
-        //     }
-        // }
-        //
-        // function handleRelativeTime(element: AssetItem): void {
-        //     let offset: number | undefined = 0;
-        //     const referenceName = element.reference?.ref?.name;
-        //     // 'since _ lasts for _'
-        //     if (referenceName && assetRefMap.has(referenceName)) {
-        //         const referencedAsset = assetRefMap.get(referenceName);
-        //         offset = absoluteTimeRefMap.get(getIdFromElement(<AssetItem>referencedAsset))?.absoluteEnd;
-        //         // @ts-ignore
-        //         assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
-        //     }
-        //     // 'lasts for _'
-        //     else {
-        //         // Compute offset to be just after the previous asset
-        //         offset = absoluteTimeRefMap.get(getIdFromElement(previousElement))?.absoluteEnd;
-        //         // @ts-ignore
-        //         assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
-        //     }
-        // }
-        //
-        // function handleAbsoluteTime(element: AssetItem): void {
-        //     const startAt = hasFrom ? element.from : 0;
-        //     // @ts-ignore
-        //     const end = hasTo ? (element.to - startAt) : element.duration;
-        //     assignAbsoluteTime(element, startAt, element.to, end);
-        // }
-        //
     }
 }
 
