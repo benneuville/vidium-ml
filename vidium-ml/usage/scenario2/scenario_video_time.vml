@@ -5,9 +5,9 @@ video named videoScenarioTime {
     image "../api_sample/image_sample/doggy.png" coordinate x=960 y=250 lasts for 1.0
     text "COUCOU" color BLUE size 50 coordinate x=960 y=250 end 1.0
     text "COUCOU" color RED size 50 position CENTER lasts for 2.0
-    image "../api_sample/image_sample/doggy.png" coordinate x=960 y=500 lasts for 2.0 since ref1
-    subtitle "sub2" lasts for 2.0 since ref1
+    image "../api_sample/image_sample/doggy.png" coordinate x=960 y=500 start after ref1 lasts for 2.0
+    subtitle "sub2" start after ref1 lasts for 2.0
     text "COUCOUCOU" color WHITE size 50 coordinate x=960 y=500 // lasts for the whole video duration
     text "HELLO" color GREEN size 50 coordinate x=960 y=500 lasts for 2.0 // never displayed because it will happen after the end of the video (it reference a non temporal element (text) which is not specifying a time) = lasts for 2 sec after the total duration of the video
-    text "COUCOU" color GREEN size 50 coordinate x=960 y=500 lasts for 2.0 since ref1
+    text "COUCOU" color GREEN size 50 coordinate x=960 y=500 start after ref1 lasts for 2.0
 }

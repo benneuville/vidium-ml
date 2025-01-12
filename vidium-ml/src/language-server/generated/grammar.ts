@@ -460,33 +460,66 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
       "name": "TimeParam",
       "fragment": true,
       "definition": {
-        "$type": "Alternatives",
+        "$type": "Group",
         "elements": [
           {
             "$type": "Group",
             "elements": [
               {
-                "$type": "Group",
-                "elements": [
-                  {
-                    "$type": "Keyword",
-                    "value": "start"
-                  },
-                  {
-                    "$type": "Assignment",
-                    "feature": "from",
-                    "operator": "=",
-                    "terminal": {
-                      "$type": "RuleCall",
-                      "rule": {
-                        "$ref": "#/rules@26"
-                      },
-                      "arguments": []
-                    }
-                  }
-                ],
-                "cardinality": "?"
+                "$type": "Keyword",
+                "value": "start"
               },
+              {
+                "$type": "Assignment",
+                "feature": "from",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@26"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "start"
+              },
+              {
+                "$type": "Keyword",
+                "value": "after"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "reference",
+                "operator": "=",
+                "terminal": {
+                  "$type": "CrossReference",
+                  "type": {
+                    "$ref": "#/rules@4"
+                  },
+                  "terminal": {
+                    "$type": "RuleCall",
+                    "rule": {
+                      "$ref": "#/rules@25"
+                    },
+                    "arguments": []
+                  },
+                  "deprecatedSyntax": false
+                }
+              }
+            ],
+            "cardinality": "?"
+          },
+          {
+            "$type": "Alternatives",
+            "elements": [
               {
                 "$type": "Group",
                 "elements": [
@@ -506,64 +539,76 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
                       "arguments": []
                     }
                   }
-                ],
-                "cardinality": "?"
-              }
-            ]
-          },
-          {
-            "$type": "Group",
-            "elements": [
-              {
-                "$type": "Keyword",
-                "value": "lasts"
-              },
-              {
-                "$type": "Keyword",
-                "value": "for"
-              },
-              {
-                "$type": "Assignment",
-                "feature": "duration",
-                "operator": "=",
-                "terminal": {
-                  "$type": "RuleCall",
-                  "rule": {
-                    "$ref": "#/rules@26"
-                  },
-                  "arguments": []
-                }
+                ]
               },
               {
                 "$type": "Group",
                 "elements": [
                   {
                     "$type": "Keyword",
-                    "value": "since"
+                    "value": "cut"
+                  },
+                  {
+                    "$type": "Keyword",
+                    "value": "from"
                   },
                   {
                     "$type": "Assignment",
-                    "feature": "reference",
+                    "feature": "cut_from",
                     "operator": "=",
                     "terminal": {
-                      "$type": "CrossReference",
-                      "type": {
-                        "$ref": "#/rules@4"
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@26"
                       },
-                      "terminal": {
-                        "$type": "RuleCall",
-                        "rule": {
-                          "$ref": "#/rules@25"
-                        },
-                        "arguments": []
+                      "arguments": []
+                    }
+                  },
+                  {
+                    "$type": "Keyword",
+                    "value": "to"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "cut_to",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@26"
                       },
-                      "deprecatedSyntax": false
+                      "arguments": []
                     }
                   }
-                ],
-                "cardinality": "?"
+                ]
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "lasts"
+                  },
+                  {
+                    "$type": "Keyword",
+                    "value": "for"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "duration",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@26"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
               }
-            ]
+            ],
+            "cardinality": "?"
           }
         ]
       },

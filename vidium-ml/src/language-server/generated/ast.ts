@@ -46,6 +46,8 @@ export function isAssetComposition(item: unknown): item is AssetComposition {
 export interface Audio extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Audio';
+    cut_from?: number
+    cut_to?: number
     duration?: number
     from?: number
     path: string
@@ -64,6 +66,8 @@ export interface Clip extends AstNode {
     readonly $type: 'Clip';
     coor_x?: number
     coor_y?: number
+    cut_from?: number
+    cut_to?: number
     duration?: number
     from?: number
     opacity?: number
@@ -101,6 +105,8 @@ export interface Image extends AstNode {
     readonly $type: 'Image';
     coor_x?: number
     coor_y?: number
+    cut_from?: number
+    cut_to?: number
     duration?: number
     from?: number
     opacity?: number
@@ -126,6 +132,8 @@ export interface Subtitle extends AstNode {
     color?: string
     coor_x?: number
     coor_y?: number
+    cut_from?: number
+    cut_to?: number
     duration?: number
     from?: number
     opacity?: number
@@ -151,6 +159,8 @@ export interface Text extends AstNode {
     color?: string
     coor_x?: number
     coor_y?: number
+    cut_from?: number
+    cut_to?: number
     duration?: number
     from?: number
     opacity?: number
@@ -174,6 +184,8 @@ export function isText(item: unknown): item is Text {
 export interface Transition extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Transition';
+    cut_from?: number
+    cut_to?: number
     duration?: number
     from?: number
     reference?: Reference<DefineAsset>
@@ -193,6 +205,8 @@ export interface UseAsset extends AstNode {
     color?: string
     coor_x?: number
     coor_y?: number
+    cut_from?: number
+    cut_to?: number
     duration?: number
     from?: number
     opacity?: number
