@@ -29,11 +29,11 @@ UseAsset:
     'use' reference=[DefineAsset:ID]
     (ColorParam)?
     (SizeParam)?
-    (TimeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
-    (OpacityParam)?;
+    (OpacityParam)?
+    (TimeParam)?;
 
 AssetItem:
     Clip | Image | Text | Audio | Transition | Subtitle;
@@ -49,7 +49,14 @@ fragment SizeParam:
     'size' size=INT;
 
 fragment TimeParam:
-    (('start' from=FLOAT)? ('end' to=FLOAT)?) | ('lasts' 'for' duration=FLOAT ('since' reference=[DefineAsset:ID])?);
+    (
+        ('start' from=FLOAT)? ('start' 'after' reference=[DefineAsset:ID])?
+        (
+            'end' to=FLOAT |
+            'cut' 'from' cut_from=FLOAT 'to' cut_to=FLOAT |
+            'lasts' 'for' duration=FLOAT
+        )?
+    );
 
 fragment PositionParam:
     'position' position=POSITION;

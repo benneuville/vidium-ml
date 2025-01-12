@@ -390,50 +390,60 @@ function computeTime(elements: AssetElement[]): number {
     return max;
 
     function computeAbsoluteTime(element: AssetItem): void {
-        const hasFrom = element.from !== undefined;
-        const hasTo = element.to !== undefined;
-        const hasDuration = element.duration !== undefined;
+        let absoluteStart = 0;
+        let absoluteEnd = 0;
 
-        if (hasDuration) {
-            handleRelativeTime(element);
-        } else if (hasFrom || hasTo) {
-            handleAbsoluteTime(element);
+        // compute the absoluteStart
+        // start could be "from" or "reference"
+        if (element.from !== undefined) {
+            absoluteStart = element.from;
+        } else if (element.reference !== undefined) {
+            if (element.reference.ref === undefined) {
+                throw new Error(`Reference ${element.reference.ref} not found`);
+            }
+            const referencedAsset = getReferencedAsset(element.reference.ref?.name);
+            if (!referencedAsset) {
+                throw new Error(`Reference ${element.reference.ref?.name} not found`);
+            }
+            const  referenceEnd = getReferenceEnd(referencedAsset);
+            absoluteStart = referenceEnd;
         } else {
-            // Unknown time
-            if (element.$type === 'Audio' || element.$type === 'Clip') {
-                const duration = getVideoDuration(element.path);
-                console.log("Duration: ", duration);
-                assignAbsoluteTime(element, 0, duration, duration);
+            let referenceEnd = 0
+            if (!isFirstElement(element)) {
+                // use the reference of the previous element
+                referenceEnd = getReferenceEnd(previousElement);
             } else {
-                assignAbsoluteTime(element, 0, ABSOLUTE_DURATION, ABSOLUTE_DURATION);
+                console.log("No previous element");
+            }
+            absoluteStart = referenceEnd;
+        }
+
+        // compute the absoluteEnd
+        // end could be "to" or cut or "duration
+        if (element.to !== undefined) {
+            absoluteEnd = element.to;
+        } else if (element.cut_from !== undefined && element.cut_to !== undefined) {
+            absoluteEnd = absoluteStart + (element.cut_to - element.cut_from);
+        } else if (element.duration !== undefined) {
+            absoluteEnd = absoluteStart + element.duration;
+        } else {
+            // use basic duration of the asset
+            if (element.$type === 'Audio' || element.$type === 'Clip') {
+                absoluteEnd = absoluteStart + getVideoDuration(element.path);
+            } else {
+                absoluteEnd = absoluteStart + ABSOLUTE_DURATION;
             }
         }
 
-        function handleRelativeTime(element: AssetItem): void {
-            let offset: number | undefined = 0;
-            const referenceName = element.reference?.ref?.name;
-            // 'lasts for _ since _'
-            if (referenceName && assetRefMap.has(referenceName)) {
-                const referencedAsset = assetRefMap.get(referenceName);
-                offset = absoluteTimeRefMap.get(getIdFromElement(<AssetItem>referencedAsset))?.absoluteEnd;
-                // @ts-ignore
-                assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
-            }
-            // 'lasts for _'
-            else {
-                // Compute offset to be just after the previous asset
-                offset = absoluteTimeRefMap.get(getIdFromElement(previousElement))?.absoluteEnd;
-                // @ts-ignore
-                assignAbsoluteTime(element, offset, offset + element.duration, element.duration);
-            }
-        }
+        assignAbsoluteTime(element, absoluteStart, absoluteEnd, absoluteEnd - absoluteStart);
 
-        function handleAbsoluteTime(element: AssetItem): void {
-            const startAt = hasFrom ? element.from : 0;
-            // @ts-ignore
-            const end = hasTo ? (element.to - startAt) : ABSOLUTE_DURATION;
-            // @ts-ignore
-            assignAbsoluteTime(element, startAt, end , end - startAt);
+        function getReferenceEnd(element: AssetItem): number {
+            const id = getIdFromElement(element);
+            const referenceEnd = absoluteTimeRefMap.get(id)?.absoluteEnd;
+            if (referenceEnd !== undefined) {
+                return referenceEnd;
+            }
+            return 0;
         }
 
         function getVideoDuration(filename: string): number {
@@ -441,6 +451,22 @@ function computeTime(elements: AssetElement[]): number {
             const result = execSync(command);
             const metadata = JSON.parse(result.toString()) as FFProbeOutput;
             return parseFloat(metadata.format.duration);
+        }
+
+        function getReferencedAsset(referenceName: string): AssetItem | undefined {
+            if (referenceName && assetRefMap.has(referenceName)) {
+                const referencedAsset = assetRefMap.get(referenceName);
+                if (referencedAsset) {
+                    return referencedAsset;
+                }
+            }
+            return undefined;
+        }
+
+        function isFirstElement(element : AssetItem) : boolean {
+            // if id is '0'
+            const id = getIdFromElement(element);
+            return id === '0';
         }
     }
 }
