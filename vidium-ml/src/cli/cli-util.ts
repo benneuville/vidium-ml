@@ -16,7 +16,11 @@ export async function extractDocument(fileName: string, services: LangiumService
         process.exit(1);
     }
 
-    const document = services.shared.workspace.LangiumDocuments.getOrCreateDocument(URI.file(path.resolve(fileName)));
+    const uri = URI.file(fileName);
+
+    services.shared.workspace.LangiumDocuments.deleteDocument(uri);
+
+    const document = services.shared.workspace.LangiumDocuments.getOrCreateDocument(uri);
     await services.shared.workspace.DocumentBuilder.build([document], { validationChecks: 'all' });
 
     const validationErrors = (document.diagnostics ?? []).filter(e => e.severity === 1);

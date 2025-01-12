@@ -3,6 +3,7 @@ import * as path from 'path';
 import { VidiumMLServices } from '../language-server/vidium-ml-module';
 import { extractAstNode } from '../cli/cli-util';
 import { Video } from '../language-server/generated/ast';
+import { VisualizerVideoBuilder } from './VisualizerVideoBuilder';
 
 
 export class VisualizerDataProvider implements vscode.WebviewViewProvider, VisualizerProviderInterface {
@@ -11,23 +12,26 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
     private _isLocked = false;
     private _lockedFile?: vscode.Uri;
     private _videoData: Video | undefined;
+    private _visualizerBuilder = new VisualizerVideoBuilder();
 
     constructor(private readonly context: vscode.ExtensionContext, private services : VidiumMLServices) {
     }
 
-    private async makeVideo(filepath:string) {
+    async makeVideo(filepath:string) {
+        // log content of the file at path
         this._videoData = await extractAstNode<Video>(filepath, this.services);
+        console.log(this._videoData);
     }
 
-    updateView() {
-        this.updateWebviewContent();
+    async updateView(): Promise<void> {
+        await this.updateWebviewContent();
     }
 
-    public resolveWebviewView(
+    public async resolveWebviewView(
         webviewView: vscode.WebviewView,
         context: vscode.WebviewViewResolveContext,
         token: vscode.CancellationToken
-    ) {
+    ) : Promise<void> {
         this._webviewView = webviewView;
 
         webviewView.webview.options = {
@@ -56,19 +60,28 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
             }
         });
 
-        // Watch for active editor changes
-        vscode.window.onDidChangeActiveTextEditor(() => this.updateWebviewContent(), this, this.context.subscriptions);
+        vscode.window.onDidChangeActiveTextEditor(async (e) => {
+            const doc = e?.document.uri.fsPath;
+            if(doc?.endsWith('.vml')) {
+                await this.makeVideo(doc);
+                await this.updateWebviewContent();
+            }
 
-        // Watch for file changes
-        const watcher = vscode.workspace.createFileSystemWatcher('**/*.vml');
-        watcher.onDidChange(() => this.updateWebviewContent());
-        watcher.onDidCreate(() => this.updateWebviewContent());
-        watcher.onDidDelete(() => this.updateWebviewContent());
-        this.context.subscriptions.push(watcher);
+        }, this, this.context.subscriptions);
+
+        vscode.workspace.onDidChangeTextDocument(async (e) => {
+            const doc = e.document.uri.fsPath;
+            if(doc.endsWith('.vml')) {
+                await this.makeVideo(doc);
+                await this.updateWebviewContent();
+            }
+        }, this, this.context.subscriptions);
+
     }
 
     private async updateWebviewContent(): Promise<void> {
 
+        console.log('Updating WebView content...');
         if (!this._webviewView) {
             return;
         }
@@ -100,13 +113,8 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
 
             if(fileToDisplay) {
                 await this.makeVideo(fileToDisplay.fsPath);
-                const content = this._videoData?.elements || [];
-                let contentString = '';
-                for (let i = 0; i < content.length; i++) {
-                    console.log(content[i]);
-                    contentString += content[i].$type + '\n';
-                }
-                this._webviewView.webview.html = this.getWebviewContent(contentString, fileOptions);
+                const content = await this._visualizerBuilder.build(this._videoData);
+                this._webviewView.webview.html = this.getWebviewContent(content, fileOptions);
             }
             else {
                 this._webviewView.webview.html = this.getWebviewContent(`<p>No .vml file to display</p>`, fileOptions);
@@ -121,7 +129,10 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
 
     private async dropdownOptions(fileToDisplay : vscode.Uri | undefined): Promise<string> {
         
-        const files = await vscode.workspace.findFiles('**/*.vml');
+        let files = await vscode.workspace.findFiles('**/*.vml');
+        files = files.sort((a, b) => {
+            return a.fsPath.localeCompare(b.fsPath);
+        });
 
         let fileOptions = '';
 
@@ -145,6 +156,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
     
 
     private getWebviewContent(content: string, fileOptions: string = ''): string {
+        console.log('Getting WebView content...');
         const styleUri = this._webviewView?.webview.asWebviewUri(
             vscode.Uri.joinPath(this.context.extensionUri, 'src', 'visualizer', 'style.css')
         );
@@ -155,18 +167,21 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>VidiumML Visualizer</title>
+            <style>
+                ${this._visualizerBuilder.getRootVariableCSS()}
+            </style>
             <link href="${styleUri}" rel="stylesheet">
         </head>
         <body>
             <div class="controls">
-                <!--
                 <button id="lockButton">${this._isLocked ? '🔒' : '🔓'}</button>
                 <select id="fileDropdown" style="${this._lastOpenedFile || this._lockedFile ? '' : 'color: #ccc;'}">
                     ${fileOptions}
                 </select>
-                -->
             </div>
-            <pre>${content}</pre>
+            <div class="visualizer">
+                ${content}
+            </div>
             <script>
                 const vscode = acquireVsCodeApi();
                 document.getElementById('lockButton').addEventListener('click', () => {

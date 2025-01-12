@@ -10,28 +10,40 @@
         "Programming Languages"
     ],
     "contributes": {
-        "languages": [{
-            "id": "vidium-ml",
-            "aliases": ["VidiumML", "vidium-ml"],
-            "extensions": [".vml"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "vidium-ml",
-            "scopeName": "source.vidium-ml",
-            "path": "./syntaxes/vidium-ml.tmLanguage.json"
-        }],
-        "commands": [{
-            "command": "vidiumML.showVisualizer",
-            "title": "Show Visualizer VidiumML"
-        }],
+        "languages": [
+            {
+                "id": "vidium-ml",
+                "aliases": [
+                    "VidiumML",
+                    "vidium-ml"
+                ],
+                "extensions": [
+                    ".vml"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "vidium-ml",
+                "scopeName": "source.vidium-ml",
+                "path": "./syntaxes/vidium-ml.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "vidiumML-Visualizer-view.update",
+                "title": "Update VidiumML Visualizer"
+            }
+        ],
         "viewsContainers": {
             "panel": [
                 {
                     "id": "vidiumML-Visualizer",
                     "title": "VidiumML Visualizer",
                     "icon": "media/vidiumML.svg"
-                }]
+                }
+            ]
         },
         "views": {
             "vidiumML-Visualizer": [
@@ -45,13 +57,13 @@
                 }
             ]
         }
-
     },
     "activationEvents": [
         "onLanguage:vidium-ml",
         "onStartupFinished",
         "onDidOpenTextDocument",
-        "onFileSystem:vml"
+        "onFileSystem:vml",
+        "onCommand:vidiumML-Visualizer-view.update"
     ],
     "files": [
         "bin",
@@ -71,9 +83,10 @@
         "langium:watch": "langium generate --watch"
     },
     "dependencies": {
-        "chevrotain": "^10.4.1",
         "chalk": "^4.1.2",
+        "chevrotain": "^10.4.1",
         "commander": "^8.0.0",
+        "get-video-duration": "^4.1.0",
         "langium": "~1.0.0",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",

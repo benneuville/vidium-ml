@@ -12,11 +12,12 @@ let client: LanguageClient;
 export function activate(context: vscode.ExtensionContext): void {
     client = startLanguageClient(context);
 
+    const visualizerDataProvider = new VisualizerDataProvider(context, services);
+
     vscode.window.registerWebviewViewProvider(
         'vidiumML-Visualizer-view',
-        new VisualizerDataProvider(context, services)
+        visualizerDataProvider
     );
-
 }
 
 
