@@ -1,0 +1,4 @@
+video named test {
+    subtitle "sub" start 0.0 end 5.0
+    subtitle "sub2" start 4.0 end 6.0 
+}

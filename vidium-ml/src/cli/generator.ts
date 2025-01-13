@@ -17,6 +17,7 @@ import {
 } from '../language-server/generated/ast';
 import {extractDestinationAndName} from './cli-util';
 import chalk from "chalk";
+import { warn } from 'console';
 
 export function generatePythonFile(video: Video, filePath: string, destination: string | undefined): string {
     const data = extractDestinationAndName(filePath, destination);
@@ -46,6 +47,8 @@ let absoluteTimeRefMap: Map<string, AbsoluteTime> = new Map();
 let previousElement: AssetItem;
 let ABSOLUTE_DURATION = 5.0;
 
+let subtitleMap: Map<string, Subtitle> = new Map();
+
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
     // Compute time for each element, as absolute time and return the absolute duration
     // This one to compute the absolute duration
@@ -62,6 +65,7 @@ function compile(video: Video, fileNode: CompositeGeneratorNode): void {
 
     // Process elements
     generateElements(video.elements, fileNode);
+    checkSubtitlesOverlap();
 
     // Export video
     fileNode.append(NL, '# Export video', NL);
@@ -190,6 +194,25 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
     }
 }
 
+function checkSubtitlesOverlap(): void {
+    // Check if the subtitles overlap
+    for (let i = 0; i < subtitleMap.size; i++) {
+        let subtitle1 = subtitleMap.get(i.toString());
+        for (let j = i + 1; j < subtitleMap.size; j++) {
+            let subtitle2 = subtitleMap.get(j.toString());
+            if (subtitle1 && subtitle2) {
+                if (subtitle1.from === undefined || subtitle1.to === undefined || subtitle2.from === undefined || subtitle2.to === undefined) {
+                    warn(`Warning: Subtitles ${subtitle1.text} or ${subtitle2.text} have undefined time`); // Should never happen
+                } else {
+                    if (subtitle1.from < subtitle2.to && subtitle1.to > subtitle2.from) {
+                        warn(`Warning: Subtitles ${subtitle1.text} and ${subtitle2.text} overlap`);
+                    }
+                }
+            }
+        };
+    }
+}
+
 function compileTransition(transition: Transition, varName: string, fileNode: CompositeGeneratorNode): void {
     switch (transition.type) {
         case 'FADE':
@@ -280,6 +303,13 @@ function compileTime(element: AssetItem): string {
 
     const start = absoluteTimeRefMap.get(<string>id)?.absoluteStart;
     const end = absoluteTimeRefMap.get(<string>id)?.duration;
+    if (element.$type === 'Subtitle') {
+        let sub = element as Subtitle;
+        sub.from = start;
+        sub.to = end;
+        subtitleMap.set(<string>id, sub);
+    }
+
     return `, offset=${start}, start_time=0.0, end_time=${end}`;
 }
 
@@ -463,6 +493,9 @@ function computeTime(elements: AssetElement[]): number {
             // use basic duration of the asset
             if (element.$type === 'Audio' || element.$type === 'Clip') {
                 absoluteEnd = absoluteStart + getVideoDuration(element.path);
+            } else if (element.$type === 'Text') {
+                warn("Text element " + element.text +  " has no defined duration, use duration to allow text to be displayed");
+                absoluteEnd = absoluteStart + ABSOLUTE_DURATION;
             } else {
                 absoluteEnd = absoluteStart + ABSOLUTE_DURATION;
             }
