@@ -44,7 +44,7 @@ let assetRefMap: Map<string, AssetItem> = new Map();
 // Map of container_index (used as asset id) to AbsoluteTime
 let absoluteTimeRefMap: Map<string, AbsoluteTime> = new Map();
 let previousElement: AssetItem;
-let ABSOLUTE_DURATION = 5.0;
+let ABSOLUTE_DURATION = 0.0;
 
 function compile(video: Video, fileNode: CompositeGeneratorNode): void {
     // Compute time for each element, as absolute time and return the absolute duration
@@ -52,7 +52,6 @@ function compile(video: Video, fileNode: CompositeGeneratorNode): void {
     ABSOLUTE_DURATION = computeTime(video.elements);
     // This one to recompute the absolute time for each element with the correct value of absolute duration
     computeTime(video.elements);
-    // computeTotalDuration(video.elements);
     fileNode.append('import movis as mv', NL, NL);
     // Create composition
     fileNode.append('# Create composition', NL);
@@ -264,6 +263,7 @@ function assignAbsoluteTime(element: AssetItem, absoluteStart: number | undefine
         absoluteEnd: absoluteEnd,
         duration: duration
     });
+    console.log(absoluteTimeRefMap.get(<string>id))
 }
 
 function compileTime(element: AssetItem): string {
