@@ -137,7 +137,7 @@ Subtitle:
 hidden terminal WS: /\s+/;
 terminal TRANSITION: 'FADE';
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
-terminal POSITION: 'TOP' | 'BOTTOM' | 'LEFT' | 'RIGHT' | 'CENTER';
+terminal POSITION: /[A-Z]+(-[A-Z]+)?/;
 terminal ID: /[_a-zA-Z][\w_]*/;
 terminal FLOAT returns number: /[0-9]*\.[0-9]+/;
 terminal INT returns number: /[0-9]+/;

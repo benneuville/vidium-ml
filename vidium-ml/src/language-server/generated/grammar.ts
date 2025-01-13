@@ -1458,59 +1458,8 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
       "$type": "TerminalRule",
       "name": "POSITION",
       "definition": {
-        "$type": "TerminalAlternatives",
-        "elements": [
-          {
-            "$type": "TerminalAlternatives",
-            "elements": [
-              {
-                "$type": "TerminalAlternatives",
-                "elements": [
-                  {
-                    "$type": "TerminalAlternatives",
-                    "elements": [
-                      {
-                        "$type": "CharacterRange",
-                        "left": {
-                          "$type": "Keyword",
-                          "value": "TOP"
-                        }
-                      },
-                      {
-                        "$type": "CharacterRange",
-                        "left": {
-                          "$type": "Keyword",
-                          "value": "BOTTOM"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "$type": "CharacterRange",
-                    "left": {
-                      "$type": "Keyword",
-                      "value": "LEFT"
-                    }
-                  }
-                ]
-              },
-              {
-                "$type": "CharacterRange",
-                "left": {
-                  "$type": "Keyword",
-                  "value": "RIGHT"
-                }
-              }
-            ]
-          },
-          {
-            "$type": "CharacterRange",
-            "left": {
-              "$type": "Keyword",
-              "value": "CENTER"
-            }
-          }
-        ]
+        "$type": "RegexToken",
+        "regex": "[A-Z]+(-[A-Z]+)?"
       },
       "fragment": false,
       "hidden": false
