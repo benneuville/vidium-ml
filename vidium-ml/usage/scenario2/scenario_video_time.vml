@@ -1,5 +1,5 @@
 video named videoScenarioTime {
-    clip "../api_sample/video_sample/sample1.mp4" // lasts for the whole clip duration
+    clip "../api_sample/video_sample/sample1.mp4" cut from 0.0 to 4.0// lasts for the whole clip duration
     define ref1 as image "../api_sample/image_sample/sid.png" lasts for 2.0
     subtitle "sub1" start 1.0 end 4.0
     image "../api_sample/image_sample/doggy.png" coordinate x=960 y=250 lasts for 1.0
