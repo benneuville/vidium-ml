@@ -50,13 +50,19 @@ fragment SizeParam:
 
 fragment TimeParam:
     (
-        ('start' from=FLOAT)? ('start' 'after' reference=[DefineAsset:ID])?
+        (('start' from=FLOAT) |
+        (
+            'start' 'after' reference=[DefineAsset:ID] |
+            'start' after=FLOAT ('after' reference=[DefineAsset:ID]) |
+            'start' before=FLOAT ('before' reference=[DefineAsset:ID])
+        ))?
         (
             'end' to=FLOAT |
             'cut' 'from' cut_from=FLOAT 'to' cut_to=FLOAT |
             'lasts' 'for' duration=FLOAT
         )?
     );
+
 
 fragment PositionParam:
     'position' position=POSITION;
@@ -131,7 +137,7 @@ Subtitle:
 hidden terminal WS: /\s+/;
 terminal TRANSITION: 'FADE';
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
-terminal POSITION: 'TOP' | 'BOTTOM' | 'LEFT' | 'RIGHT' | 'CENTER';
+terminal POSITION: /[A-Z]+(-[A-Z]+)?/;
 terminal ID: /[_a-zA-Z][\w_]*/;
 terminal FLOAT returns number: /[0-9]*\.[0-9]+/;
 terminal INT returns number: /[0-9]+/;

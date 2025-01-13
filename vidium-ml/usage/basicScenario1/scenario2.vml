@@ -1,0 +1,9 @@
+video named AliceCast {
+    define t1 as text "Welcome" color WHITE size 50 lasts for 10.0
+    define clip1a as clip "../api_sample/video_sample/2min30.mp4" cut from 23.0 to 107.0
+    define s1 as subtitle "subbb" start after t1 lasts for 10.0
+    subtitle "suuubb 2" start 30.0 after s1 lasts for 10.0
+    define clip1b as clip "../api_sample/video_sample/2min30.mp4" start after clip1a cut from 121.0 to 141.0
+    subtitle "before" start 5.0 before clip1b lasts for 15.0
+    text "Thank for watching" color WHITE size 50 start after clip1b lasts for 10.0
+}
