@@ -144,14 +144,14 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
             compileCut(varName, fileNode, clip.cut_from, clip.cut_to);
-            compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
+            compileTransform(clip, clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
             fileNode.append(`scene.add_layer(${varName}, name="${varName}",  transform=${varName}_transform ${compileTime(clip)})`, NL);
             break;
 
         case 'Image':
             const img = item as Image;
             fileNode.append(`${varName} = mv.layer.Image("${img.path}")`, NL);
-            compileTransform(img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
+            compileTransform(img, img.position, img.coor_x, img.coor_y, img.scale_x, img.scale_y, img.scale, img.rotate, img.opacity, varName, fileNode);
             fileNode.append(`scene.add_layer(${varName}, name="${varName}", transform=${varName}_transform ${compileTime(img)})`, NL);
             break;
 
@@ -161,7 +161,7 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
             const color = txt.color ? processColor(txt.color) : "#ffffff";
             const font_size = txt.size ? `${txt.size}` : 30;
             fileNode.append(`${varName} = mv.layer.Text("${text}", font_size=${font_size}, color="${color}")`, NL);
-            compileTransform(txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
+            compileTransform(txt, txt.position, txt.coor_x, txt.coor_y, txt.scale_x, txt.scale_y, txt.scale, txt.rotate, txt.opacity, varName, fileNode);
             fileNode.append(`scene.add_layer(${varName}, name="${varName}", transform=${varName}_transform ${compileTime(txt)})`, NL);
             break;
         case "Audio":
@@ -229,6 +229,7 @@ function compileCut(varName: string, fileNode: CompositeGeneratorNode,  from : n
     }
 }
 function compileTransform(
+    element : AssetItem,
     position: string | undefined,
     coor_x: number | undefined,
     coor_y: number | undefined,
@@ -240,7 +241,8 @@ function compileTransform(
     varName: string,
     fileNode: CompositeGeneratorNode
 ): void {
-    const processedPosition = processPosition(position, coor_x, coor_y);
+    const elementType = element.$type
+    const processedPosition = processPosition(elementType, varName, fileNode, position, coor_x, coor_y);
     const processedScale = processScale(scale_x, scale_y, scale);
     // Default rotation is 0
     rotate = rotate ? rotate : 0;
@@ -302,27 +304,39 @@ function processScale(scale_x: number | undefined, scale_y: number | undefined, 
     }
 }
 
-function processPosition(position: string | undefined, coor_x: number | undefined, coor_y: number | undefined): string {
+function processPosition(elementType : string, varName : string, fileNode : CompositeGeneratorNode, position: string | undefined, coor_x: number | undefined, coor_y: number | undefined): string {
     if (position === undefined && coor_x !== undefined && coor_y !== undefined) {
         return `(${coor_x}, ${coor_y})`;
     } else if (position !== undefined) {
+        if(elementType == 'Clip' || elementType == 'Image'){
+            fileNode.append(`${varName}_width = ${varName}.size[0]`, NL)
+            fileNode.append(`${varName}_height = ${varName}.size[1]`, NL)
+        }
         switch (position) {
             case 'CENTER':
-                return '(1920/2, 1080/2)';
+                return '(video_width/2, video_height/2)';
             case 'TOP':
-                return '(1920/2, 0)';
+                return `(video_width/2, ${varName}_height/2)`;
             case 'BOTTOM':
-                return '(1920/2, 1080)';
+                return `(video_width/2, video_height - ${varName}_height/2)`;
             case 'LEFT':
-                return '(0, 1080/2)';
+                return `(${varName}_width/2, video_height/2)`;
             case 'RIGHT':
-                return '(1920, 1080/2)';
+                return `(video_width - ${varName}_width/2 , video_height/2)`;
+            case 'TOP-LEFT':
+                return `(${varName}_width/2,${varName}_height/2)`;
+            case 'TOP-RIGHT':
+                return `(video_width - ${varName}_width/2,${varName}_height/2)`;
+            case 'BOTTOM-LEFT':
+                return `(${varName}_width/2,video_height - ${varName}_height/2)`
+            case 'BOTTOM-RIGHT':
+                return `(video_width - ${varName}_width/2,video_height - ${varName}_height/2)`
             default:
-                return '(1920/2, 1080/2)';
+                return '(video_width/2, video_height/2)';
         }
     } else {
         // Default position is CENTER
-        return '(1920/2, 1080/2)';
+        return '(video_width/2, video_height/2)';
     }
 }
 
