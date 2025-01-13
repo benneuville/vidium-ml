@@ -89,9 +89,11 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 assetRefMap.set(element.name, element.item);
 
                 // Handle asset generation
-                generateAssetItem(element.item, varName, fileNode);
-                fileNode.appendNewLine();
-                assignPreviousElement(element);
+                if(element.item.$type !== 'Subtitle'){
+                    generateAssetItem(element.item, varName, fileNode);
+                    fileNode.appendNewLine();
+                    assignPreviousElement(element);
+                }
                 break;
 
             case 'UseAsset':
@@ -101,10 +103,12 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                     const referencedAsset = assetRefMap.get(referenceName);
                     // Handle asset generation
                     if (referencedAsset) {
-                        overrideAssetItemParameters(referencedAsset, element);
-                        generateAssetItem(referencedAsset, varName, fileNode);
-                        fileNode.appendNewLine();
-                        break;
+                        if (referencedAsset.$type !== 'Subtitle') {
+                            overrideAssetItemParameters(referencedAsset, element);
+                            generateAssetItem(referencedAsset, varName, fileNode);
+                            fileNode.appendNewLine();
+                            break;
+                        }
                     }
                 }
                 chalk.red(`Error: Asset reference ${referenceName} not found`);
@@ -342,6 +346,10 @@ function processPosition(elementType : string, varName : string, fileNode : Comp
             fileNode.append(`${varName}_width = ${varName}.size[0]`, NL)
             fileNode.append(`${varName}_height = ${varName}.size[1]`, NL)
         }
+        if(elementType == 'Text'){
+            fileNode.append(`${varName}_width = ${varName}.get_size()[0]`, NL)
+            fileNode.append(`${varName}_height = ${varName}.get_size()[1]`, NL)
+        }
         switch (position) {
             case 'CENTER':
                 return '(video_width/2, video_height/2)';
@@ -364,6 +372,7 @@ function processPosition(elementType : string, varName : string, fileNode : Comp
             default:
                 return '(video_width/2, video_height/2)';
         }
+        
     } else {
         // Default position is CENTER
         return '(video_width/2, video_height/2)';
