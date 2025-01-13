@@ -50,13 +50,19 @@ fragment SizeParam:
 
 fragment TimeParam:
     (
-        ('start' from=FLOAT)? ('start' 'after' reference=[DefineAsset:ID])?
+        ('start' from=FLOAT)?
+        (
+            'start' 'after' reference=[DefineAsset:ID] |
+            'start' after=FLOAT ('after' reference=[DefineAsset:ID]) |
+            'start' before=FLOAT ('before' reference=[DefineAsset:ID])
+        )?
         (
             'end' to=FLOAT |
             'cut' 'from' cut_from=FLOAT 'to' cut_to=FLOAT |
             'lasts' 'for' duration=FLOAT
         )?
     );
+
 
 fragment PositionParam:
     'position' position=POSITION;

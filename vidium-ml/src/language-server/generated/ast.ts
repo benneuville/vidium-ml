@@ -46,6 +46,8 @@ export function isAssetComposition(item: unknown): item is AssetComposition {
 export interface Audio extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Audio';
+    after?: number
+    before?: number
     cut_from?: number
     cut_to?: number
     duration?: number
@@ -64,6 +66,8 @@ export function isAudio(item: unknown): item is Audio {
 export interface Clip extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Clip';
+    after?: number
+    before?: number
     coor_x?: number
     coor_y?: number
     cut_from?: number
@@ -103,6 +107,8 @@ export function isDefineAsset(item: unknown): item is DefineAsset {
 export interface Image extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Image';
+    after?: number
+    before?: number
     coor_x?: number
     coor_y?: number
     cut_from?: number
@@ -129,6 +135,8 @@ export function isImage(item: unknown): item is Image {
 export interface Subtitle extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Subtitle';
+    after?: number
+    before?: number
     color?: string
     coor_x?: number
     coor_y?: number
@@ -156,6 +164,8 @@ export function isSubtitle(item: unknown): item is Subtitle {
 export interface Text extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Text';
+    after?: number
+    before?: number
     color?: string
     coor_x?: number
     coor_y?: number
@@ -184,6 +194,8 @@ export function isText(item: unknown): item is Text {
 export interface Transition extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'Transition';
+    after?: number
+    before?: number
     cut_from?: number
     cut_to?: number
     duration?: number
@@ -202,6 +214,8 @@ export function isTransition(item: unknown): item is Transition {
 export interface UseAsset extends AstNode {
     readonly $container: AssetComposition | DefineAsset | Video;
     readonly $type: 'UseAsset';
+    after?: number
+    before?: number
     color?: string
     coor_x?: number
     coor_y?: number

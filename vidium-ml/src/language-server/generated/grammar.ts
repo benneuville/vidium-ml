@@ -485,34 +485,137 @@ export const VidiumMLGrammar = (): Grammar => loadedVidiumMLGrammar ?? (loadedVi
             "cardinality": "?"
           },
           {
-            "$type": "Group",
+            "$type": "Alternatives",
             "elements": [
               {
-                "$type": "Keyword",
-                "value": "start"
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "start"
+                  },
+                  {
+                    "$type": "Keyword",
+                    "value": "after"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "reference",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "CrossReference",
+                      "type": {
+                        "$ref": "#/rules@4"
+                      },
+                      "terminal": {
+                        "$type": "RuleCall",
+                        "rule": {
+                          "$ref": "#/rules@25"
+                        },
+                        "arguments": []
+                      },
+                      "deprecatedSyntax": false
+                    }
+                  }
+                ]
               },
               {
-                "$type": "Keyword",
-                "value": "after"
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "start"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "after",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@26"
+                      },
+                      "arguments": []
+                    }
+                  },
+                  {
+                    "$type": "Group",
+                    "elements": [
+                      {
+                        "$type": "Keyword",
+                        "value": "after"
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "reference",
+                        "operator": "=",
+                        "terminal": {
+                          "$type": "CrossReference",
+                          "type": {
+                            "$ref": "#/rules@4"
+                          },
+                          "terminal": {
+                            "$type": "RuleCall",
+                            "rule": {
+                              "$ref": "#/rules@25"
+                            },
+                            "arguments": []
+                          },
+                          "deprecatedSyntax": false
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               {
-                "$type": "Assignment",
-                "feature": "reference",
-                "operator": "=",
-                "terminal": {
-                  "$type": "CrossReference",
-                  "type": {
-                    "$ref": "#/rules@4"
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "start"
                   },
-                  "terminal": {
-                    "$type": "RuleCall",
-                    "rule": {
-                      "$ref": "#/rules@25"
-                    },
-                    "arguments": []
+                  {
+                    "$type": "Assignment",
+                    "feature": "before",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@26"
+                      },
+                      "arguments": []
+                    }
                   },
-                  "deprecatedSyntax": false
-                }
+                  {
+                    "$type": "Group",
+                    "elements": [
+                      {
+                        "$type": "Keyword",
+                        "value": "before"
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "reference",
+                        "operator": "=",
+                        "terminal": {
+                          "$type": "CrossReference",
+                          "type": {
+                            "$ref": "#/rules@4"
+                          },
+                          "terminal": {
+                            "$type": "RuleCall",
+                            "rule": {
+                              "$ref": "#/rules@25"
+                            },
+                            "arguments": []
+                          },
+                          "deprecatedSyntax": false
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             ],
             "cardinality": "?"

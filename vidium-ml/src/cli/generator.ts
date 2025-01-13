@@ -414,6 +414,12 @@ function computeTime(elements: AssetElement[]): number {
             }
             const  referenceEnd = getReferenceEnd(referencedAsset);
             absoluteStart = referenceEnd;
+            if(element.after !== undefined) {
+                absoluteStart += element.after;
+            }
+            if(element.before !== undefined) {
+                absoluteStart -= element.before;
+            }
         } else {
             let referenceEnd = 0
             if (!isFirstElement(element)) {
@@ -423,6 +429,12 @@ function computeTime(elements: AssetElement[]): number {
                 console.log("No previous element");
             }
             absoluteStart = referenceEnd;
+            if(element.after !== undefined) {
+                absoluteStart += element.after;
+            }
+            if(element.before !== undefined) {
+                absoluteStart -= element.before;
+            }
         }
 
         // compute the absoluteEnd
