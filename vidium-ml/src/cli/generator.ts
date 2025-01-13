@@ -143,6 +143,7 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
         case 'Clip':
             const clip = item as Clip;
             fileNode.append(`${varName} = mv.layer.Video("${clip.path}")`, NL);
+            compileCut(varName, fileNode, clip.cut_from, clip.cut_to);
             compileTransform(clip.position, clip.coor_x, clip.coor_y, clip.scale_x, clip.scale_y, clip.scale, clip.rotate, clip.opacity, varName, fileNode);
             fileNode.append(`scene.add_layer(${varName}, name="${varName}",  transform=${varName}_transform ${compileTime(clip)})`, NL);
             break;
@@ -166,6 +167,7 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
         case "Audio":
             const audio = item as Audio;
             fileNode.append(`${varName} = mv.layer.Audio("${audio.path}")`, NL);
+            compileCut(varName, fileNode, audio.cut_from, audio.cut_to);
             fileNode.append(`scene.add_layer(${varName}, name="${varName}" ${compileTime(audio)})`, NL);
             break;
         case "Transition":
@@ -221,6 +223,11 @@ function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
     }
 }
 
+function compileCut(varName: string, fileNode: CompositeGeneratorNode,  from : number | undefined, to : number | undefined) {
+    if (from && to){
+        fileNode.append(`${varName} = mv.trim(${varName}, [${from}], [${to}])`, NL)
+    }
+}
 function compileTransform(
     position: string | undefined,
     coor_x: number | undefined,
