@@ -140,7 +140,9 @@ Background:
 // ============
 
 hidden terminal WS: /\s+/;
-terminal TIME: /(([0-9]+:[0-9]+:[0-9]+)|([0-9]+:[0-9]+)|([0-9]+)|([0-9]*\.[0-9]+))/; // HH:MM:SS | MM:SS | SS | SS.MS
+terminal TIME: ('0'..'9'+ ':' ('0'..'5')? '0'..'9' ':' ('0'..'5')?  '0'..'9' ('.' '0'..'9' ('0'..'9' ('0'..'9')?)?)? | // HH:MM:SS or HH:MM:SS.MS
+                '0'..'9'+ ':' ('0'..'5')? '0'..'9' ('.' '0'..'9' ('0'..'9' ('0'..'9')?)?)? |                       // MM:SS or MM:SS.MS
+                ('0'..'5')? '0'..'9' ('.' '0'..'9' ('0'..'9' ('0'..'9')?)?)?);
 terminal TRANSITION: 'FADE';
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
 terminal POSITION: /[A-Z]+(-[A-Z]+)?/;

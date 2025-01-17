@@ -1,5 +1,9 @@
 video named videoScenarioBackground {
-    define b1 as background RED lasts for 1:11
-    background GREEN lasts for 2
-    background BLUE start after b1 lasts for 12
+    background BLUE start 0 lasts for 9.2
+    background BLUE start 0 lasts for 9
+    background BLUE start 0 lasts for 09
+    background BLUE start 0 lasts for 10:12
+    background BLUE start 0 lasts for 1:09:10
+    background BLUE start 0 lasts for 1:9:10
+    background BLUE start 0 lasts for 01:9:10
 }
