@@ -36,7 +36,7 @@ UseAsset:
     (TimeParam)?;
 
 AssetItem:
-    Clip | Image | Text | Audio | Transition | Subtitle;
+    Clip | Image | Text | Audio | Transition | Subtitle | Background;
 
 // =========
 //  PARAMETERS
@@ -127,6 +127,11 @@ Subtitle:
     (SizeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
+    (OpacityParam)?
+    (TimeParam)?;
+
+Background:
+    'background' color=COLOR
     (OpacityParam)?
     (TimeParam)?;
 

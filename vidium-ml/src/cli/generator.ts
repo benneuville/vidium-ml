@@ -1,12 +1,12 @@
 import fs from 'fs';
-import { execSync } from 'child_process';
+import {execSync} from 'child_process';
 import {CompositeGeneratorNode, NL, toString} from 'langium';
 import path from 'path';
 import {
     Asset,
     AssetElement,
     AssetItem,
-    Audio,
+    Audio, Background,
     Clip,
     Image,
     Subtitle,
@@ -17,7 +17,7 @@ import {
 } from '../language-server/generated/ast';
 import {extractDestinationAndName} from './cli-util';
 import chalk from "chalk";
-import { warn } from 'console';
+import {warn} from 'console';
 
 export function generatePythonFile(video: Video, filePath: string, destination: string | undefined): string {
     const data = extractDestinationAndName(filePath, destination);
@@ -89,7 +89,7 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 assetRefMap.set(element.name, element.item);
 
                 // Handle asset generation
-                if(element.item.$type !== 'Subtitle'){
+                if (element.item.$type !== 'Subtitle') {
                     generateAssetItem(element.item, varName, fileNode);
                     fileNode.appendNewLine();
                     assignPreviousElement(element);
@@ -180,6 +180,11 @@ function generateAssetItem(item: AssetItem, varName: string, fileNode: Composite
         case "Transition":
             compileTransition(item as Transition, varName, fileNode);
             break;
+        case "Background":
+            const background = item as Background;
+            fileNode.append(`${varName} = mv.layer.Rectangle(size=scene.size, color="${background.color}")`, NL);
+            fileNode.append(`scene.add_layer(${varName}, name="${varName}" ${compileTime(background)})`, NL);
+            break;
 
         // Subtitle is a text with specific parameters by default (could be overriden, of course)
         case 'Subtitle':
@@ -212,7 +217,7 @@ function checkSubtitlesOverlap(): void {
                     }
                 }
             }
-        };
+        }
     }
 }
 
@@ -230,32 +235,52 @@ function compileTransition(transition: Transition, varName: string, fileNode: Co
 }
 
 function overrideAssetItemParameters(item: AssetItem, element: UseAsset): void {
-    // TODO : Refactor to improve maintainability
-    if (item.$type !== 'Audio' && item.$type !== 'Transition') {
+    if ("position" in item) {
         item.position = element.position ? element.position : item.position;
+    }
+    if ("coor_x" in item) {
         item.coor_x = element.coor_x ? element.coor_x : item.coor_x;
+    }
+    if ("coor_y" in item) {
         item.coor_y = element.coor_y ? element.coor_y : item.coor_y;
+    }
+    if ("scale_x" in item) {
         item.scale_x = element.scale_x ? element.scale_x : item.scale_x;
+    }
+    if ("scale_y" in item) {
         item.scale_y = element.scale_y ? element.scale_y : item.scale_y;
+    }
+    if ("scale" in item) {
         item.scale = element.scale ? element.scale : item.scale;
+    }
+    if ("opacity" in item) {
         item.opacity = element.opacity ? element.opacity : item.opacity;
     }
-    item.from = element.from ? element.from : item.from;
-    item.to = element.to ? element.to : item.to;
-
-    if (item.$type === 'Text') {
+    if ("rotate" in item) {
+        item.rotate = element.rotate ? element.rotate : item.rotate;
+    }
+    if ("from" in item) {
+        item.from = element.from ? element.from : item.from;
+    }
+    if ("to" in item) {
+        item.to = element.to ? element.to : item.to;
+    }
+    if ("color" in item) {
         item.color = element.color ? element.color : item.color;
+    }
+    if ("size" in item) {
         item.size = element.size ? element.size : item.size;
     }
 }
 
-function compileCut(varName: string, fileNode: CompositeGeneratorNode,  from : number | undefined, to : number | undefined) {
-    if (from && to){
+function compileCut(varName: string, fileNode: CompositeGeneratorNode, from: number | undefined, to: number | undefined) {
+    if (from && to) {
         fileNode.append(`${varName} = mv.trim(${varName}, [${from}], [${to}])`, NL)
     }
 }
+
 function compileTransform(
-    element : AssetItem,
+    element: AssetItem,
     position: string | undefined,
     coor_x: number | undefined,
     coor_y: number | undefined,
@@ -338,15 +363,15 @@ function processScale(scale_x: number | undefined, scale_y: number | undefined, 
     }
 }
 
-function processPosition(elementType : string, varName : string, fileNode : CompositeGeneratorNode, position: string | undefined, coor_x: number | undefined, coor_y: number | undefined): string {
+function processPosition(elementType: string, varName: string, fileNode: CompositeGeneratorNode, position: string | undefined, coor_x: number | undefined, coor_y: number | undefined): string {
     if (position === undefined && coor_x !== undefined && coor_y !== undefined) {
         return `(${coor_x}, ${coor_y})`;
     } else if (position !== undefined) {
-        if(elementType == 'Clip' || elementType == 'Image'){
+        if (elementType == 'Clip' || elementType == 'Image') {
             fileNode.append(`${varName}_width = ${varName}.size[0]`, NL)
             fileNode.append(`${varName}_height = ${varName}.size[1]`, NL)
         }
-        if(elementType == 'Text'){
+        if (elementType == 'Text') {
             fileNode.append(`${varName}_width = ${varName}.get_size()[0]`, NL)
             fileNode.append(`${varName}_height = ${varName}.get_size()[1]`, NL)
         }
@@ -372,7 +397,7 @@ function processPosition(elementType : string, varName : string, fileNode : Comp
             default:
                 return '(video_width/2, video_height/2)';
         }
-        
+
     } else {
         // Default position is CENTER
         return '(video_width/2, video_height/2)';
@@ -465,12 +490,12 @@ function computeTime(elements: AssetElement[]): number {
             if (!referencedAsset) {
                 throw new Error(`Reference ${element.reference.ref?.name} not found`);
             }
-            const  referenceEnd = getReferenceEnd(referencedAsset);
+            const referenceEnd = getReferenceEnd(referencedAsset);
             absoluteStart = referenceEnd;
-            if(element.after !== undefined) {
+            if (element.after !== undefined) {
                 absoluteStart += element.after;
             }
-            if(element.before !== undefined) {
+            if (element.before !== undefined) {
                 absoluteStart -= element.before;
             }
         } else {
@@ -482,10 +507,10 @@ function computeTime(elements: AssetElement[]): number {
                 console.log("No previous element");
             }
             absoluteStart = referenceEnd;
-            if(element.after !== undefined) {
+            if (element.after !== undefined) {
                 absoluteStart += element.after;
             }
-            if(element.before !== undefined) {
+            if (element.before !== undefined) {
                 absoluteStart -= element.before;
             }
         }
@@ -503,7 +528,7 @@ function computeTime(elements: AssetElement[]): number {
             if (element.$type === 'Audio' || element.$type === 'Clip') {
                 absoluteEnd = absoluteStart + getVideoDuration(element.path);
             } else if (element.$type === 'Text') {
-                warn("Text element " + element.text +  " has no defined duration, use duration to allow text to be displayed");
+                warn("Text element " + element.text + " has no defined duration, use duration to allow text to be displayed");
                 absoluteEnd = absoluteStart + ABSOLUTE_DURATION;
             } else {
                 absoluteEnd = absoluteStart + ABSOLUTE_DURATION;
@@ -538,7 +563,7 @@ function computeTime(elements: AssetElement[]): number {
             return undefined;
         }
 
-        function isFirstElement(element : AssetItem) : boolean {
+        function isFirstElement(element: AssetItem): boolean {
             // if id is '0'
             const id = getIdFromElement(element);
             return id === '0';
