@@ -50,18 +50,18 @@ fragment SizeParam:
 
 fragment TimeParam:
     (
-        (('start' from=FLOAT) |
+        (('start' from_string=TIME) |
         (
             'start' 'after' reference=[DefineAsset:ID] |
-            'start' after=FLOAT ('after' reference=[DefineAsset:ID]) |
-            'start' before=FLOAT ('before' reference=[DefineAsset:ID])
+            'start' after_string=TIME ('after' reference=[DefineAsset:ID]) |
+            'start' before_string=TIME ('before' reference=[DefineAsset:ID])
         ))?
         (
-            'end' to=FLOAT |
-            'cut' 'from' cut_from=FLOAT 'to' cut_to=FLOAT |
-            'lasts' 'for' duration=FLOAT
+            'end' to_string=TIME |
+            'cut' 'from' cut_from_string=TIME 'to' cut_to_string=TIME |
+            'lasts' 'for' duration_string=TIME
         )?
-    );
+    ) (after=FLOAT before=FLOAT from=FLOAT cut_from=FLOAT cut_to=FLOAT duration=FLOAT to=FLOAT)?;
 
 
 fragment PositionParam:
@@ -140,6 +140,7 @@ Background:
 // ============
 
 hidden terminal WS: /\s+/;
+terminal TIME: /(([0-9]+:[0-9]+:[0-9]+)|([0-9]+:[0-9]+)|([0-9]+)|([0-9]*\.[0-9]+))/; // HH:MM:SS | MM:SS | SS | SS.MS
 terminal TRANSITION: 'FADE';
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
 terminal POSITION: /[A-Z]+(-[A-Z]+)?/;

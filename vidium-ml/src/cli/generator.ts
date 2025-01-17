@@ -24,6 +24,7 @@ export function generatePythonFile(video: Video, filePath: string, destination: 
     const generatedFilePath = `${path.join(data.destination, data.name)}.py`;
 
     const fileNode = new CompositeGeneratorNode();
+    convertTimes(video.elements);
 
     compile(video, fileNode);
 
@@ -577,3 +578,60 @@ interface FFProbeOutput {
     };
 }
 
+function convertTimes(elements: AssetElement[]): void {
+    elements.forEach(element => {
+        if (element.$type === 'AssetComposition') {
+            convertTimes([element.left]);
+            convertTimes([element.right]);
+        } else if (element.$type === 'DefineAsset') {
+            element = element.item;
+        }
+        if ("duration_string" in element && element.duration_string !== undefined) {
+            element.duration = convertTime(element.duration_string);
+        }
+        if ("cut_from_string" in element && element.cut_from_string !== undefined) {
+            element.cut_from = convertTime(element.cut_from_string);
+        }
+        if ("cut_to_string" in element && element.cut_to_string !== undefined) {
+            element.cut_to = convertTime(element.cut_to_string);
+        }
+        if ("after_string" in element && element.after_string !== undefined) {
+            element.after = convertTime(element.after_string);
+        }
+        if ("before_string" in element && element.before_string !== undefined) {
+            element.before = convertTime(element.before_string);
+        }
+        if ("from_string" in element && element.from_string !== undefined) {
+            element.from = convertTime(element.from_string);
+        }
+        if ("to_string" in element && element.to_string !== undefined) {
+            element.to = convertTime(element.to_string);
+        }
+    })
+}
+
+function convertTime(time: string | undefined): number {
+    console.log("Time: ", time);
+    if (time === undefined) {
+        return 0;
+    }
+    let computedTime: number = 0;
+
+    if (time.includes(':')) {
+        const parts = time.split(':');
+        if (parts.length === 3) {
+            const [hours, minutes, seconds] = parts.map(Number);
+            computedTime = hours * 3600 + minutes * 60 + seconds;
+        } else {
+            const [minutes, seconds] = parts.map(Number);
+            computedTime = minutes * 60 + seconds;
+        }
+    } else if (time.includes('.')) {
+        computedTime = parseFloat(time);
+    } else {
+        computedTime = parseInt(time, 10);
+    }
+
+    console.log("Computed time: ", computedTime);
+    return computedTime;
+}

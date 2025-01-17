@@ -29,7 +29,9 @@ export class VidiumMLValidator {
             checkCutsAssetElement( video.elements, element, accept);
         });
     }
+
 }
+
 function checkCutsAssetElement(allElements :AssetElement[], element: AssetElement, accept: ValidationAcceptor): void {
     switch (element.$type) {
             case 'AssetComposition':
