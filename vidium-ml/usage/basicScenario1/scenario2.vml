@@ -1,4 +1,4 @@
-video named AliceCast {
+video named aliceCast {
     define t1 as text "Welcome" color WHITE size 60 lasts for 00:10
     define clip1a as clip "../api_sample/video_sample/2min30.mp4" cut from 00:23 to 01:47
     define s1 as subtitle "subbb" start after t1 lasts for 00:10

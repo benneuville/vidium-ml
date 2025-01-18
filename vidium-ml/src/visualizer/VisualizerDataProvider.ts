@@ -69,12 +69,15 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                 this._zoomValue = Math.min(220, this._zoomValue + 10);
                 this.updateWebviewContent();
             } else if (message.command === 'zoomOut') {
-                this._zoomValue = Math.max(1, this._zoomValue - 10);
+                this._zoomValue = Math.max(5, this._zoomValue - 10);
                 this.updateWebviewContent();
             } else if (message.command === 'generateVideo') {
                 if(this._lastOpenedFile) {
                     await this.generateVideo(this._lastOpenedFile);
                 }
+            } else if (message.command === 'uploadYoutube') {
+                console.log('Uploading to YouTube...');
+                //TODO: Implement YouTube upload
             }
         });
 
@@ -153,7 +156,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         const vmlEnv = root + 'vmlenv';
         if (!fs.existsSync(vmlEnv)) {
             console.log('Creating vmlenv...');
-            await execPromise('python3 -m venv vmlenv', { cwd: root });
+            await execPromise('py -m venv vmlenv', { cwd: root });
         }
         const pythonExecutable = process.platform === 'win32'
             ? vmlEnv + '/Scripts/python.exe'  // Windows
@@ -282,15 +285,35 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                             ${fileOptions}
                         </select>
                     </div>
-                    <button class="generate_video" id="generate_video" ${this._isGenerating ? 'disabled' : ''}> ${!this._isGenerating ? 'Generate Video' : ' Loading ...'}</button>
                 </div>
             </div>
             <div class="visualizer">
                 ${content}
             </div>
+            
+            <div class="generator_section">
+                <button class="generate_video" id="generate_handler" ${this._isGenerating ? 'disabled' : ''}> ${!this._isGenerating ? 'Generate ▲' : ' Loading ...'}</button>
+                <div id="generate_type" class="disabled">
+                    <button id="generate_video" class="generate_v">Generate Video</button>
+                    <button id="upload_youtube" class="generate_v">Generate & Upload Youtube</button>
+                </div>
+            </div>
             ${this._message ? this._message.getMessage() : ''}
             <script>
                 const vscode = acquireVsCodeApi();
+                let generateShown = false;
+                
+                function showGenerate() {
+                    if(!generateShown) {
+                        document.getElementById('generate_type').classList.add('disabled');
+                        document.getElementById('generate_handler').innerHTML = 'Generate ▲';
+                    }
+                    else {
+                        document.getElementById('generate_type').classList.remove('disabled');
+                        document.getElementById('generate_handler').innerHTML = 'Generate ▼';
+                    }
+                }
+
                 document.getElementById('lockButton').addEventListener('click', () => {
                     vscode.postMessage({ command: 'toggleLock' });
                 });
@@ -305,7 +328,19 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                 });
                 document.getElementById('generate_video').addEventListener('click', () => {
                     vscode.postMessage({ command: 'generateVideo' });
-    });
+                    generateShown = false;
+                    showGenerate();
+                });
+                document.getElementById('upload_youtube').addEventListener('click', () => {
+                    vscode.postMessage({ command: 'uploadYoutube' });
+                    generateShown = false;
+                    showGenerate();
+                });
+                document.getElementById('generate_handler').addEventListener('click', () => {
+                    generateShown = !generateShown;
+                    showGenerate();
+                });
+
             </script>
         </body>
         </html>`;

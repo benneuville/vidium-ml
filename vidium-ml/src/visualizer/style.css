@@ -50,28 +50,6 @@ select {
     margin-right: 15px;
 }
 
-.generate_video {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 5px 10px ;
-    background-color: #63bc76;
-    color: #FFF;
-    cursor: pointer;
-    border: #578f63 1px solid;
-}
-
-.generate_video:hover {
-    background-color: #578f63;
-}
-
-.generate_video:disabled {
-    background-color: #b1cbb7;
-    border: #9fb4a3 1px solid;
-    color: #383838;
-    cursor: not-allowed;
-}
-
 .file-dropdown {
     display: flex;
     justify-content: center;
@@ -299,7 +277,7 @@ footer {
     color: #333;
     position: fixed;
     bottom: 15px;
-    right: 15px;
+    left: 15px;
     height: 30px;
     overflow: hidden;
 }
@@ -345,4 +323,83 @@ footer > div.error {
         opacity: 0;
         display: none;
     }
+}
+
+.generator_section {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column-reverse;
+    padding: 5px 10px;
+    position: fixed;
+    bottom: 10px;
+    right: 0;
+}
+
+.generator_section * {
+    font-size: 15px;
+}
+
+#generate_type.disabled {
+    display: none;
+}
+
+
+#generate_type {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    flex-direction: column;
+}
+
+.generate_v {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #FFF;
+    color: #333;
+    cursor: pointer;
+    border: #578f63 1px solid;
+    border-radius: 20px;
+    transition: background-color .3s;
+}
+
+.generate_v:hover {
+    background-color: #93d1a0;
+    background-color: #bdf0c8;
+    color: #333;
+}
+
+#upload_youtube {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    color: #861515;
+    cursor: pointer;
+    border: #861515 1px solid;
+}
+
+#upload_youtube:hover {
+    background-color: #fa929b;
+    background-color: #fac5c5;
+    color: #842029;
+}
+
+#generate_handler {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, .5);
+    color: #333;
+    cursor: pointer;
+    border: #333 1px solid;
+    border-radius: 20px;
+    transition: background-color .3s;
+}
+
+#generate_handler:hover {
+    background-color: rgba(165, 233, 176, 0.5);
+    border-radius: 20px;
 }
