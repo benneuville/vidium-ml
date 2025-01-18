@@ -142,7 +142,6 @@ Background:
 hidden terminal WS: /\s+/;
 terminal TRANSITION: 'FADE';
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
-terminal ID: /[_a-zA-Z][\w_]*/;
 
 terminal fragment DIGIT: /[0-9]/;
 terminal TIME: (DIGIT+ ':' ('0'..'5')? DIGIT ':' ('0'..'5')?  DIGIT ('.' DIGIT (DIGIT (DIGIT)?)?)? | // HH:MM:SS or HH:MM:SS.MS
@@ -150,11 +149,9 @@ terminal TIME: (DIGIT+ ':' ('0'..'5')? DIGIT ':' ('0'..'5')?  DIGIT ('.' DIGIT (
 
 terminal FLOAT returns number: (DIGIT+ '.' DIGIT+);
 terminal INT returns number: DIGIT+;
-
-
-
-
 terminal POSITION: /[A-Z]+(-[A-Z]+)?/;
+terminal ID: /[_a-zA-Z][\w_]*/;
+
 terminal STRING: /"[^"]*"|'[^']*'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
