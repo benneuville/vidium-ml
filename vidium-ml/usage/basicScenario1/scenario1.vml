@@ -1,5 +1,5 @@
 video named recapHolyday {
-    define title as text "Holyday of Alice and Bob" color WHITE size 50 end 10.0
+    define title as text "Holyday of Alice and Bob" color WHITE end 10.0
     define clip1 as clip "../api_sample/video_sample/sample0.mp4"
     define clip2 as clip "../api_sample/video_sample/sample1.mp4" start after clip1
     text "Thanks for watching" color WHITE start after clip2 lasts for 15.0

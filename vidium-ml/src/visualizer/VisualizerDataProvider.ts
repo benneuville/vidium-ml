@@ -7,6 +7,7 @@ import { extractAstNode } from '../cli/cli-util';
 import { Video } from '../language-server/generated/ast';
 import { VisualizerVideoBuilder } from './VisualizerVideoBuilder';
 import { VisualizerErrorMessager, VisualizerMessager, VisualizerValidationMessager, VisualizerInfoPythonMessager } from './VisualizerMessager';
+import fs from "fs";
 
 
 const execPromise = promisify(exec);
@@ -102,9 +103,11 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         
         // Répertoire de travail
         process.chdir("../../");
+        const root = __dirname.replace("\\", '/') + '/../../';
         const cli = __dirname.replace("\\", '/') + '/../../bin/cli';
-        const vid_py = __dirname.replace("\\", '/') + '/../../generated/' + path.fsPath.split('\\').pop()!.split('.').shift() + '.py';
-    
+        const vid_py = (process.platform === "win32") ?
+            __dirname.replace("\\", '/') + '/../../generated/' + path.fsPath.split('\\').pop()!.split('.').shift() + '.py'
+            : __dirname + '/../../generated/' + path.fsPath.split('/').pop()!.split('.').shift() + '.py';
         this._isGenerating = true;
         await this.updateWebviewContent();
     
@@ -130,7 +133,10 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         try {
             // Commande pour exécuter le script Python
             console.log(`Running: py ${vid_py}`);
-            const pythonOutput = await execPromise(`py ${vid_py}`, options);
+            console.log("  ee");
+            const pythonExecutable = await this.getPythonExe();
+            await this.installMovis(pythonExecutable, root);
+            const pythonOutput = await execPromise(`${pythonExecutable} ${vid_py}`, options);
             console.log(`Python stdout: ${pythonOutput.stdout}`);
             console.error(`Python stderr: ${pythonOutput.stderr}`);
             this._message = new VisualizerValidationMessager(this._videoData!.name);
@@ -141,6 +147,31 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
     
         this._isGenerating = false;
         await this.updateWebviewContent();
+    }
+
+    private async getPythonExe(): Promise<string> {
+        const root = __dirname.replace("\\", '/') + '/../../';
+        const vmlEnv = root + 'vmlenv';
+        if (!fs.existsSync(vmlEnv)) {
+            console.log('Creating vmlenv...');
+            await execPromise('python3 -m venv vmlenv', { cwd: root });
+        }
+        const pythonExecutable = process.platform === 'win32'
+            ? vmlEnv + '/Scripts/python.exe'  // Windows
+            : vmlEnv + '/bin/python';         // Linux/macOS
+
+        return pythonExecutable;
+    }
+
+    private async installMovis(pythonExecutable : string, root: string) {
+        console.log('Checking if "movis" is installed...');
+        try {
+            await execPromise(`${pythonExecutable} -m pip show movis`, { cwd: root });
+            console.log('Movis is already installed.');
+        } catch (error) {
+            console.log('Installing "movis"...');
+            await execPromise(`${pythonExecutable} -m pip install movis`, { cwd: root });
+        }
     }
 
     private async updateWebviewContent(): Promise<void> {
