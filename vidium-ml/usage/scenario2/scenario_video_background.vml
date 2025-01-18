@@ -1,9 +1,6 @@
 video named videoScenarioBackground {
-    background BLUE start 0 lasts for 9.2
-    background BLUE start 0 lasts for 9
-    background BLUE start 0 lasts for 09
-    background BLUE start 0 lasts for 10:12
-    background BLUE start 0 lasts for 1:09:10
-    background BLUE start 0 lasts for 1:9:10
-    background BLUE start 0 lasts for 01:9:10
+    background BLUE lasts for 5
+    background RED lasts for 5
+    transition FADE start 4.5 end 5.5
+    text "size" lasts for 5 size 50
 }

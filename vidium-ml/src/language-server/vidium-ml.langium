@@ -140,17 +140,22 @@ Background:
 // ============
 
 hidden terminal WS: /\s+/;
-terminal TIME: ('0'..'9'+ ':' ('0'..'5')? '0'..'9' ':' ('0'..'5')?  '0'..'9' ('.' '0'..'9' ('0'..'9' ('0'..'9')?)?)? | // HH:MM:SS or HH:MM:SS.MS
-                '0'..'9'+ ':' ('0'..'5')? '0'..'9' ('.' '0'..'9' ('0'..'9' ('0'..'9')?)?)? |                       // MM:SS or MM:SS.MS
-                ('0'..'5')? '0'..'9' ('.' '0'..'9' ('0'..'9' ('0'..'9')?)?)?);
 terminal TRANSITION: 'FADE';
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
-terminal POSITION: /[A-Z]+(-[A-Z]+)?/;
 terminal ID: /[_a-zA-Z][\w_]*/;
-terminal FLOAT returns number: /[0-9]*\.[0-9]+/;
-terminal INT returns number: /[0-9]+/;
-terminal STRING: /"[^"]*"|'[^']*'/;
 
+terminal fragment DIGIT: /[0-9]/;
+terminal TIME: (DIGIT+ ':' ('0'..'5')? DIGIT ':' ('0'..'5')?  DIGIT ('.' DIGIT (DIGIT (DIGIT)?)?)? | // HH:MM:SS or HH:MM:SS.MS
+                DIGIT+ ':' ('0'..'5')? DIGIT ('.' DIGIT (DIGIT (DIGIT)?)?)? |                       // MM:SS or MM:SS.MS
+               ('0'..'5')? FLOAT);
+terminal FLOAT returns number: (DIGIT+ '.' DIGIT+);
+terminal INT returns number: DIGIT+;
+
+
+
+
+terminal POSITION: /[A-Z]+(-[A-Z]+)?/;
+terminal STRING: /"[^"]*"|'[^']*'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
 hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
