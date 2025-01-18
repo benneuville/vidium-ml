@@ -578,7 +578,7 @@ interface FFProbeOutput {
     };
 }
 
-function convertTimes(elements: AssetElement[]): void {
+export function convertTimes(elements: AssetElement[]): void {
     elements.forEach(element => {
         if (element.$type === 'AssetComposition') {
             convertTimes([element.left]);
@@ -610,7 +610,7 @@ function convertTimes(elements: AssetElement[]): void {
     })
 }
 
-function convertTime(time: string | undefined): number {
+export function convertTime(time: string | undefined): number {
     console.log("Time: ", time);
     if (time === undefined) {
         return 0;
