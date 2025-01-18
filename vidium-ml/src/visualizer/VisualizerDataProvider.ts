@@ -29,7 +29,6 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
     async makeVideo(filepath:string) {
         // log content of the file at path
         this._videoData = await extractAstNode<Video>(filepath, this.services);
-        console.log(this._videoData);
     }
 
     async updateView(): Promise<void> {
@@ -70,7 +69,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                 this._zoomValue = Math.min(220, this._zoomValue + 10);
                 this.updateWebviewContent();
             } else if (message.command === 'zoomOut') {
-                this._zoomValue = Math.max(30, this._zoomValue - 10);
+                this._zoomValue = Math.max(1, this._zoomValue - 10);
                 this.updateWebviewContent();
             } else if (message.command === 'generateVideo') {
                 if(this._lastOpenedFile) {
@@ -290,7 +289,6 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                 ${content}
             </div>
             ${this._message ? this._message.getMessage() : ''}
-            }
             <script>
                 const vscode = acquireVsCodeApi();
                 document.getElementById('lockButton').addEventListener('click', () => {

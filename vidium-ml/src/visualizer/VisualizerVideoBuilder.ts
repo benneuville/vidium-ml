@@ -1,6 +1,7 @@
 import { Reference } from 'langium';
 import { AssetElement, Audio, Video, Clip, Image, Text, Transition, UseAsset, AssetItem, isDefineAsset, isUseAsset, DefineAsset, Subtitle, AssetComposition } from '../language-server/generated/ast';
 import { getVideoDurationInSeconds } from 'get-video-duration';
+import { convertTimes } from '../cli/generator';
 
 type SimplifiedAsset = {
     $type: string;
@@ -124,6 +125,8 @@ export class VisualizerVideoBuilder {
         <div class="contains_sized">
         <div class="asset_container">`;
         let elements = video.elements;
+        convertTimes(elements);
+        console.log(elements);
         if(elements) {
             this._definedAssets.clear();
             for(let i = 0; i < elements.length; i++) {
