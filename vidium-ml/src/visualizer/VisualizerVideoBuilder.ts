@@ -1,5 +1,5 @@
 import { Reference } from 'langium';
-import { AssetElement, Audio, Video, Clip, Image, Text, Transition, UseAsset, AssetItem, isDefineAsset, isUseAsset, DefineAsset, Subtitle } from '../language-server/generated/ast';
+import { AssetElement, Audio, Video, Clip, Image, Text, Transition, UseAsset, AssetItem, isDefineAsset, isUseAsset, DefineAsset, Subtitle, AssetComposition } from '../language-server/generated/ast';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 
 type SimplifiedAsset = {
@@ -11,6 +11,12 @@ type SimplifiedAsset = {
     type?: string;
     duration?: number;
     reference?: Reference<DefineAsset>;
+    left?: AssetElement;
+    right?: AssetElement;
+    cut_to?: number;
+    cut_from?: number;
+    before?: number;
+    after?: number;
 }
 
 type GeneralAsset = SimplifiedAsset | AssetElement;
@@ -43,12 +49,15 @@ export class VisualizerVideoBuilder {
     private __ruler2_space = 50;
 
     constructor() {
+        
     }
 
-    async build(video: Video | undefined): Promise<string> {
+    async build(video: Video | undefined, zoom_value : number): Promise<string> {
         if(!video) {
             return '<h1>No video found</h1>';
         }
+        this.__ruler1_space = zoom_value/100 * 5;
+        this.__ruler2_space = this.__ruler1_space * 10;
         return await this.buildVideo(video);
     }
 
@@ -111,23 +120,30 @@ export class VisualizerVideoBuilder {
         //RULER
         htmlcontent += this.buildRuler();
 
-        htmlcontent += `<div class="asset_container">`;
+        htmlcontent += `
+        <div class="contains_sized">
+        <div class="asset_container">`;
         let elements = video.elements;
         if(elements) {
             this._definedAssets.clear();
-            elements.filter((element) => isDefineAsset(element)).forEach(async (element) => {
-                this._definedAssets.set((element as DefineAsset).name, (element as DefineAsset).item);
-                this._absoluteSizeOfDefinedAssets.set((element as DefineAsset).name, await this.calculate_size((element as DefineAsset).item));
-            });
+            for(let i = 0; i < elements.length; i++) {
+                let element = elements[i];
+                if(isDefineAsset(element)) {
+                    this._definedAssets.set(element.name, element.item);
+                    let size = await this.calculate_size(element.item);
+                    this._absoluteSizeOfDefinedAssets.set(element.name, size);
+                }
+            }
 
-            let assets = elements.filter((element) => !isDefineAsset(element));
-            let size = assets.length-1;
-            for(let i = 0; i < assets.length; i++) {
-                htmlcontent += await this.addAssetElement(assets[i], size - i);
+            let size = elements.length;
+            for(let i = 0; i < size; i++) {
+                htmlcontent += await this.addAssetElement(elements[i]);
             }
         }
 
-        htmlcontent += `</div>`;
+        htmlcontent += `</div>
+        </div>
+        `;
 
         return htmlcontent;
     }
@@ -137,32 +153,35 @@ export class VisualizerVideoBuilder {
         return htmlcontent;
     }
 
-    private async addAssetElement(element: GeneralAsset, index: number): Promise<string> {
+    private async addAssetElement(element: GeneralAsset, relative_left: number = 0): Promise<string> {
         let htmlcontent = ``;
         switch(element.$type) {
-            case 'Audio':
-                htmlcontent += await this.addAssetItem(element, index);
+            case 'Audio' :
+                htmlcontent += await this.addAssetItem(element, relative_left);
                 break;
             case 'Clip':
-                htmlcontent += await this.addAssetItem(element, index);
+                htmlcontent += await this.addAssetItem(element, relative_left);
                 break;
             case 'Image':
-                htmlcontent += await this.addAssetItem(element, index);
+                htmlcontent += await this.addAssetItem(element, relative_left);
                 break;
             case 'Text':
-                htmlcontent += await this.addAssetItem(element, index);
+                htmlcontent += await this.addAssetItem(element, relative_left);
                 break;
             case 'Subtitle':
-                htmlcontent += await this.addAssetItem(element, index);
+                htmlcontent += await this.addAssetItem(element, relative_left);
                 break;
             case 'Transition':
-                htmlcontent += await this.addAssetItem(element, index);
+                htmlcontent += await this.addAssetItem(element, relative_left);
                 break;
             case 'UseAsset':
-                htmlcontent += await this.addUseAsset(element as UseAsset, index);
+                htmlcontent += await this.addUseAsset(element as UseAsset, relative_left);
                 break;
             case 'AssetComposition':
-                //htmlcontent += this.addAssetComposition(element);
+                htmlcontent += await this.addAssetComposition(element, relative_left);
+                break;
+            case 'DefineAsset':
+                htmlcontent += await this.addAssetItem((element as DefineAsset).item, relative_left);
                 break;
             default:
                 break;
@@ -171,7 +190,7 @@ export class VisualizerVideoBuilder {
     }
 
     
-    async addUseAsset(element: UseAsset, index: number = 0) : Promise<string> {
+    async addUseAsset(element: UseAsset, relative_left : number = 0) : Promise<string> {
         if(!element) return '';
         let ref = element.reference.$refText;
         let asset = this._definedAssets.get(ref);
@@ -197,29 +216,80 @@ export class VisualizerVideoBuilder {
             if(asset.$type == 'Transition') {
                 SimplifiedAsset.type = asset.type;
             }
-            return await this.addAssetElement(SimplifiedAsset, index);
+            return await this.addAssetElement(SimplifiedAsset, relative_left);
         }
         return '';
     }
+
+    async addAssetComposition(element : AssetComposition | SimplifiedAsset, relative_left : number = 0) : Promise<string> {
+        let left = this.getStartOfElement(element);
+
+        return `
+            <div class="${(element.$type).toLocaleLowerCase()}" style="margin-left: ${(left - relative_left) * this.__ruler2_space * this.__ruler_x}px;">
+                <div class="cnt-compo">
+                    <div class="titlecomposition">Composed Asset</div>
+                    <div class="cnt-compositionasset">
+                    ${await this.addAssetElement(element.left!, left)}
+                    ${await this.addAssetElement(element.right!, left)}
+                    </div>
+                </div>
+            </div>`;
+    }
     
-    async addAssetItem(element: AssetItem | SimplifiedAsset, index: number = 0) : Promise<string> {
+    getStartOfElement(element : GeneralAsset) : number {
+        switch(element.$type) {
+            case "AssetComposition":
+                return this.getStartOfComposedElement(element);
+            case "DefineAsset":
+                return this.getStartOfElement((element as DefineAsset).item);
+            case "UseAsset":
+                return this.getStartOfUseElement(element as UseAsset);
+            default :
+                return this.getStartOfAssetItem(element);
+
+        }
+    }
+
+    getStartOfUseElement(element: UseAsset) : number {
+        return element.from || this.getStartOfElement(this._definedAssets.get(element.reference.$refText)!) || 0;
+    }
+
+    getStartOfAssetItem(element: AssetItem | SimplifiedAsset) : number {
+        return element.from || 0;
+    }
+
+    getStartOfComposedElement(element : AssetComposition | SimplifiedAsset) : number {
+        return Math.min(this.getStartOfElement(element.left!), this.getStartOfElement(element.right!));
+    }
+
+    
+    async addAssetItem(element: AssetItem | SimplifiedAsset, relative_left = 0) : Promise<string> {
         if(!element) return '';
-        let left = this.startAssetElement(element, index) + "px";
+        let left = (this.startAssetElement(element) - relative_left * this.__ruler2_space * this.__ruler_x) + "px";
+    
         let description = await this.generateDescription(element);
         let width = await this.calculate_duration(element);
         let height = this.__size_asset_element + "px";
-        return `<div class="${(element.$type).toLocaleLowerCase()}" style="left: ${left}; width: ${width}; height: ${height};">${element.$type}${description}</div>`;
+        return `
+            <div class="${(element.$type).toLocaleLowerCase()}" style="width: ${width}; margin-left: ${left}; height: ${height};">${element.$type}${description}</div>
+        `;
     }
 
-    startAssetElement(element: AssetItem | SimplifiedAsset, index: number = 0) : number {
-        if(!element) return 0;
+    startAssetElement(element: AssetItem | SimplifiedAsset) : number {
+        if(!element) return Number.MAX_SAFE_INTEGER;
         let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x;
         if(element.reference) {
             let ref = element.reference.$refText;
             let asset = this._definedAssets.get(ref);
             let size = this._absoluteSizeOfDefinedAssets.get(ref);
             if(asset && size) {
-                return left + this.startAssetElement(asset, index) + size;
+                left = left + this.startAssetElement(asset) + size;
+            }
+            if(element.before) {
+                left -= element.before * this.__ruler2_space * this.__ruler_x;
+            }
+            else if(element.after) {
+                left += element.after * this.__ruler2_space * this.__ruler_x;
             }
         }
         return left;
@@ -238,70 +308,6 @@ export class VisualizerVideoBuilder {
         }
         return description;
     }
-/* 
-    async addAudio(element: Audio | SimplifiedAsset, index: number = 0) : Promise<string> {
-        if(!element) return '';
-        let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
-        let width = await this.calculate_duration(element);
-        let path = element.path?.split('/').pop();
-        let top = "0";
-        // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
-        let height = this.__size_asset_element + "px";
-        return `<div class="audio" style="left: ${left}; top: ${top}; width: ${width}; height: ${height};">${element.$type} : ${path}</div>`;
-    }
-
-    async addClip(element: Clip | SimplifiedAsset, index: number = 0): Promise<string> {
-        if(!element) return '';
-        let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
-        let width = this.calculate_duration(element);
-        let path = element.path?.split('/').pop();
-        let top = "0";
-        // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
-        let height = this.__size_asset_element + "px";
-        return `<div class="clip" style="left: ${left}; top: ${top}; width: ${width}; height: ${height};">${element.$type} : ${path}</div>`;
-    }
-
-    async addImage(element: Image | SimplifiedAsset, index: number = 0) {
-        if(!element) return '';
-        let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
-        let width = this.calculate_duration(element);
-        let path = element.path?.split('/').pop();
-        let top = "0";
-        // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
-        let height = this.__size_asset_element + "px";
-        return `<div class="image" style="left: ${left}; top: ${top}; width: ${width}; height: ${height};">${element.$type} : ${path}</div>`;
-    }
-
-    async addText(element: Text | SimplifiedAsset, index: number = 0) {
-        if(!element) return '';
-        let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
-        let width = await this.calculate_duration(element);
-        let top = "0";
-
-        // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
-        let height = this.__size_asset_element + "px";
-        return `<div class="text" style="left: ${left}; top: ${top}; width: ${width}; height: ${height};">${element.$type} : ${element.text}</div>`;
-    }
-
-    async addSubTitle(element: Subtitle | SimplifiedAsset, index: number = 0) {
-        if(!element) return '';
-        let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
-        let width = await this.calculate_duration(element);
-        let top = "0";
-        // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
-        let height = this.__size_asset_element + "px";
-        return `<div class="subtitle" style="left: ${left}; top: ${top}; width: ${width}; height: ${height};">${element.$type} : ${element.text}</div>`;
-    }
-
-    async addTransition(element: Transition | SimplifiedAsset, index: number = 0) {
-        if(!element) return '';
-        let left = (element.from || 0) * this.__ruler2_space * this.__ruler_x + "px";
-        let width = await this.calculate_duration(element);
-        let top = "0";
-        // top = (this.__size_asset_element + this.__size_asset_element_border) * index + "px";
-        let height = this.__size_asset_element + "px";
-        return `<div class="transition" style="left: ${left}; top: ${top}; width: ${width}; height: ${height};">${element.$type} : ${element.type}</div>`;
-    } */
 
     async calculate_duration(element : Audio | Clip | Image | Subtitle | Text | Transition | SimplifiedAsset) : Promise<string> {
         if(element.$type == 'Audio' || element.$type == 'Clip') {
@@ -331,9 +337,9 @@ export class VisualizerVideoBuilder {
     }
 
     async calculate_size(element : Audio | Clip | Image | Subtitle | Text | Transition | SimplifiedAsset) : Promise<number> {
-        if(!element.to && !element.duration) return 0;
         if(element.$type == 'Audio' || element.$type == 'Clip') {
-            return await this.calculate_size_timed_element(element);
+            let size = await this.calculate_size_timed_element(element);
+            return size;
         } else {
             return await this.calculate_size_untimed(element);
         }
@@ -346,12 +352,7 @@ export class VisualizerVideoBuilder {
             start = element.from;
         }
         if(element.to) {
-            if(element.$type == 'Text' || element.$type == 'Subtitle') {
-                duration = element.to;
-            }
-            else {
-                duration = element.to - start;
-            }
+            duration = element.to - start;
         } else if(element.duration) {
             duration = element.duration;
         }
@@ -368,9 +369,21 @@ export class VisualizerVideoBuilder {
             duration = element.to - start;
         } else if(element.duration) {
             duration = element.duration;
+        } else if(element.cut_from && element.cut_to) {
+            duration = element.cut_to - element.cut_from;
         } else if(element.path) {
-            duration = await getVideoDurationInSeconds(__dirname.replace("\\", "/") + "/../../" + element.path);
+            let tmp_dur = await getVideoDurationInSeconds(__dirname.replace("\\", "/") + "/../../" + element.path);
+            if(element.cut_from) {
+                duration =  tmp_dur - element.cut_from;
+            }
+            else {
+                duration = tmp_dur;
+            }
+            if(element.cut_to) {
+                duration = element.cut_to;
+            }
         }
+        console.log("Duration " + element.$type + ": " + duration);
         return duration * this.__ruler2_space * this.__ruler_x;
     }
 }

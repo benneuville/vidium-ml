@@ -1,10 +1,15 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { promisify } from 'util';
+import { exec } from 'child_process';
 import { VidiumMLServices } from '../language-server/vidium-ml-module';
 import { extractAstNode } from '../cli/cli-util';
 import { Video } from '../language-server/generated/ast';
 import { VisualizerVideoBuilder } from './VisualizerVideoBuilder';
+import { VisualizerErrorMessager, VisualizerMessager, VisualizerValidationMessager, VisualizerInfoPythonMessager } from './VisualizerMessager';
 
+
+const execPromise = promisify(exec);
 
 export class VisualizerDataProvider implements vscode.WebviewViewProvider, VisualizerProviderInterface {
     private _webviewView?: vscode.WebviewView;
@@ -13,7 +18,9 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
     private _lockedFile?: vscode.Uri;
     private _videoData: Video | undefined;
     private _visualizerBuilder = new VisualizerVideoBuilder();
-    
+    private _zoomValue = 100;
+    private _isGenerating = false;
+    private _message?: VisualizerMessager;
 
     constructor(private readonly context: vscode.ExtensionContext, private services : VidiumMLServices) {
     }
@@ -58,6 +65,16 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                 this._isLocked = true;
                 this._lockedFile = selectedFileUri;
                 this.updateWebviewContent();
+            } else if (message.command === 'zoomIn') {
+                this._zoomValue = Math.min(220, this._zoomValue + 10);
+                this.updateWebviewContent();
+            } else if (message.command === 'zoomOut') {
+                this._zoomValue = Math.max(30, this._zoomValue - 10);
+                this.updateWebviewContent();
+            } else if (message.command === 'generateVideo') {
+                if(this._lastOpenedFile) {
+                    await this.generateVideo(this._lastOpenedFile);
+                }
             }
         });
 
@@ -78,6 +95,52 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
             }
         }, this, this.context.subscriptions);
 
+    }
+
+    private async generateVideo(path: vscode.Uri): Promise<void> {
+        console.log('Generating video...');
+        
+        // Répertoire de travail
+        process.chdir("../../");
+        const cli = __dirname.replace("\\", '/') + '/../../bin/cli';
+        const vid_py = __dirname.replace("\\", '/') + '/../../generated/' + path.fsPath.split('\\').pop()!.split('.').shift() + '.py';
+    
+        this._isGenerating = true;
+        await this.updateWebviewContent();
+    
+        // Options pour exec
+        const options = { cwd: __dirname.replace("\\", '/') + '/../../' };
+    
+        try {
+            // Commande pour générer la vidéo
+            console.log(`Running: node ${cli} generate ${path.fsPath}`);
+            const cliOutput = await execPromise(`node ${cli} generate ${path.fsPath}`, options);
+            console.log(`CLI stdout: ${cliOutput.stdout}`);
+            console.error(`CLI stderr: ${cliOutput.stderr}`);
+            this._message = new VisualizerInfoPythonMessager("Python file for " + this._videoData!.name + " video generated successfully");
+            await this.updateWebviewContent();
+        } catch (error: any) {
+            console.error(`Error during CLI execution: ${error.message}`);
+            this._message = new VisualizerErrorMessager(this._videoData!.name);
+            this._isGenerating = false;
+            await this.updateWebviewContent();
+            return;
+        }
+    
+        try {
+            // Commande pour exécuter le script Python
+            console.log(`Running: py ${vid_py}`);
+            const pythonOutput = await execPromise(`py ${vid_py}`, options);
+            console.log(`Python stdout: ${pythonOutput.stdout}`);
+            console.error(`Python stderr: ${pythonOutput.stderr}`);
+            this._message = new VisualizerValidationMessager(this._videoData!.name);
+        } catch (error: any) {
+            console.error(`Error during Python execution: ${error.message}`);
+            this._message = new VisualizerErrorMessager(this._videoData!.name);
+        }
+    
+        this._isGenerating = false;
+        await this.updateWebviewContent();
     }
 
     private async updateWebviewContent(): Promise<void> {
@@ -114,7 +177,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
 
             if(fileToDisplay) {
                 await this.makeVideo(fileToDisplay.fsPath);
-                const content = await this._visualizerBuilder.build(this._videoData);
+                const content = await this._visualizerBuilder.build(this._videoData, this._zoomValue);
                 this._webviewView.webview.html = this.getWebviewContent(content, fileOptions);
             }
             else {
@@ -175,14 +238,28 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         </head>
         <body>
             <div class="controls">
-                <button id="lockButton">${this._isLocked ? '🔒' : '🔓'}</button>
-                <select id="fileDropdown" style="${this._lastOpenedFile || this._lockedFile ? '' : 'color: #ccc;'}">
-                    ${fileOptions}
-                </select>
+                <div class="left-ctrl">
+                    <div class="zoom" id="zoom">
+                        <button id="zoom_in">+</button> 
+                        <div id="zoom_value">${this._zoomValue}%</div>
+                        <button id="zoom_out">-</button> 
+                    </div>
+                </div>
+                <div class="right-ctrl">
+                    <div class="file-dropdown">
+                        <button id="lockButton">${this._isLocked ? '🔒' : '🔓'}</button>
+                        <select id="fileDropdown" style="${this._lastOpenedFile || this._lockedFile ? '' : 'color: #ccc;'}">
+                            ${fileOptions}
+                        </select>
+                    </div>
+                    <button class="generate_video" id="generate_video" ${this._isGenerating ? 'disabled' : ''}> ${!this._isGenerating ? 'Generate Video' : ' Loading ...'}</button>
+                </div>
             </div>
             <div class="visualizer">
                 ${content}
             </div>
+            ${this._message ? this._message.getMessage() : ''}
+            }
             <script>
                 const vscode = acquireVsCodeApi();
                 document.getElementById('lockButton').addEventListener('click', () => {
@@ -191,6 +268,15 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                 document.getElementById('fileDropdown').addEventListener('change', (event) => {
                     vscode.postMessage({ command: 'selectFile', fileUri: event.target.value });
                 });
+                document.getElementById('zoom_in').addEventListener('click', () => {
+                    vscode.postMessage({ command: 'zoomIn' });
+                });
+                document.getElementById('zoom_out').addEventListener('click', () => {
+                    vscode.postMessage({ command: 'zoomOut' });
+                });
+                document.getElementById('generate_video').addEventListener('click', () => {
+                    vscode.postMessage({ command: 'generateVideo' });
+    });
             </script>
         </body>
         </html>`;
