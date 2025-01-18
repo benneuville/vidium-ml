@@ -1,8 +1,8 @@
 video named videoComplexe {
-    clip "../api_sample/video_sample/sample0.mp4"
-    image "../api_sample/image_sample/sid.png" rotate 180.0 start 00:01 end 00:02 // end is absolute
+    ( clip "../api_sample/video_sample/sample0.mp4" and image "../api_sample/image_sample/sid.png" rotate 180.0 start 00:01 end 00:02 ) // end is absolute
     image "../api_sample/image_sample/doggy.png" scale 2.0 start 00:03 end 00:04
     text "HELLO" color GREEN size 50 opacity 0.5  start 00:01 lasts for 00:02  // end is relative to start
     define ref1 as text "COUCOU" color BLUE size 50 coordinate x=960 y=250 end 00:02
+    (subtitle "sub" start 00:00 end 00:05 and subtitle "sub2" start 00:04 end 00:06)
     use ref1 color RED position CENTER scale 2.0 rotate 90.0 opacity 0.3 start 00:02 end 00:04
 }

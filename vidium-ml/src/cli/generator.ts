@@ -73,10 +73,11 @@ function compile(video: Video, fileNode: CompositeGeneratorNode): void {
 
     console.log(absoluteTimeRefMap);
 }
+let globalIndexElement = 0;
 
 function generateElements(elements: AssetElement[], fileNode: CompositeGeneratorNode): void {
-    elements?.forEach((element, index) => {
-        const varName = `element_${index}`;
+    elements?.forEach((element) => {
+        const varName = `element_${globalIndexElement++}`;
 
         switch (element.$type) {
             case 'AssetComposition':
@@ -126,11 +127,10 @@ function generateElements(elements: AssetElement[], fileNode: CompositeGenerator
                 break;
         }
     });
-
     // Generate subtitles (on top of all other elements)
-    elements.filter(element => element.$type === 'Subtitle').forEach((element, index) => {
+    elements.filter(element => element.$type === 'Subtitle').forEach((element) => {
         element = element as Subtitle;
-        const varName = `subtitle_${index}`;
+        const varName = `subtitle_${globalIndexElement++}`;
 
         generateAssetItem(element, varName, fileNode);
         fileNode.appendNewLine();
