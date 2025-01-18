@@ -6,7 +6,7 @@ import {OAuth2Client} from 'google-auth-library';
 import readline from 'readline/promises';
 
 const app = express();
-const port = 3000; // You can change this
+const port = 3000;
 
 const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
 const SECRET_PATH = path.resolve('./client_secrets.json');
@@ -142,3 +142,4 @@ app.post('/refresh-token', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
+
