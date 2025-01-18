@@ -27,8 +27,10 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
     private _visualizerBuilder = new VisualizerVideoBuilder();
     private _zoomValue = 100;
     private _isGenerating = false;
-    private _isUploading = false;
     private _message?: VisualizerMessager;
+    private _authUrl?: string;
+    private _isAuthenticationPhase = false;
+    private _isDefineVideoElementsPhase = false;
 
     constructor(private readonly context: vscode.ExtensionContext, private services : VidiumMLServices) {
     }
@@ -54,7 +56,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         };
 
         // Initial content
-        this.updateWebviewContent();
+        await this.updateWebviewContent();
 
         // Handle messages from the WebView
         webviewView.webview.onDidReceiveMessage(async (message) => {
@@ -66,26 +68,45 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                 else {
                     this._lockedFile = this._lastOpenedFile; // Lock to last opened file
                 }
-                this.updateWebviewContent();
             } else if (message.command === 'selectFile') {
                 const selectedFileUri = vscode.Uri.parse(message.fileUri);
                 this._isLocked = true;
                 this._lockedFile = selectedFileUri;
-                this.updateWebviewContent();
             } else if (message.command === 'zoomIn') {
                 this._zoomValue = Math.min(220, this._zoomValue + 10);
-                this.updateWebviewContent();
             } else if (message.command === 'zoomOut') {
                 this._zoomValue = Math.max(5, this._zoomValue - 10);
-                this.updateWebviewContent();
             } else if (message.command === 'generateVideo') {
                 if(this._lastOpenedFile) {
+                    this._isGenerating = true;
                     await this.generateVideo(this._lastOpenedFile);
+                    this._isGenerating = false;
                 }
             } else if (message.command === 'uploadYoutube') {
-                console.log('Uploading to YouTube...');
-                //TODO: Implement YouTube upload
+                if (tokenExists()){
+                    await refreshIfExpired()
+                    this._isDefineVideoElementsPhase = true;
+                } else {
+                    await this.startAuthentication();
+                }
+            } else if (message.command === 'endAuthentication') {
+                if (message.data) {
+                    await this.endAuthentication(message.data);
+                    this._isDefineVideoElementsPhase = true;
+                }
+                this._isAuthenticationPhase = false;
+            } else if (message.command === 'confirmUploadYoutube') {
+                this._isDefineVideoElementsPhase = false;
+                this._isGenerating = true;
+                await this.generateVideo(this._lastOpenedFile!);
+                await this.handleUploadToYouTube(message.data.title, message.data.description, message.data.tags);
+                this._isGenerating = false;
+            } else if (message.command === 'canceUploadYoutube') {
+                this._isDefineVideoElementsPhase = false;
             }
+
+            await this.updateWebviewContent();
+
 
         });
 
@@ -118,7 +139,6 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         const vid_py = (process.platform === "win32") ?
             __dirname.replace("\\", '/') + '/../../generated/' + path.fsPath.split('\\').pop()!.split('.').shift() + '.py'
             : __dirname + '/../../generated/' + path.fsPath.split('/').pop()!.split('.').shift() + '.py';
-        this._isGenerating = true;
         await this.updateWebviewContent();
     
         // Options pour exec
@@ -135,15 +155,12 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         } catch (error: any) {
             console.error(`Error during CLI execution: ${error.message}`);
             this._message = new VisualizerErrorMessager(this._videoData!.name);
-            this._isGenerating = false;
-            await this.updateWebviewContent();
             return;
         }
     
         try {
             // Commande pour exécuter le script Python
             console.log(`Running: py ${vid_py}`);
-            console.log("  ee");
             const pythonExecutable = await this.getPythonExe();
             await this.installMovis(pythonExecutable, root);
             const pythonOutput = await execPromise(`${pythonExecutable} ${vid_py}`, options);
@@ -154,9 +171,8 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
             console.error(`Error during Python execution: ${error.message}`);
             this._message = new VisualizerErrorMessager(this._videoData!.name);
         }
-    
-        this._isGenerating = false;
         await this.updateWebviewContent();
+
     }
 
     private async getPythonExe(): Promise<string> {
@@ -164,7 +180,8 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         const vmlEnv = root + 'vmlenv';
         if (!fs.existsSync(vmlEnv)) {
             console.log('Creating vmlenv...');
-            await execPromise('python3 -m venv vmlenv', { cwd: root });
+            const python = (process.platform === 'win32') ? 'py' : 'python3';
+            await execPromise(`${python} -m venv vmlenv`, { cwd: root });
         }
         const pythonExecutable = process.platform === 'win32'
             ? vmlEnv + '/Scripts/python.exe'  // Windows
@@ -300,13 +317,50 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
             </div>
             
             <div class="generator_section">
-                <button class="generate_video" id="generate_handler" ${this._isGenerating ? 'disabled' : ''}> ${!this._isGenerating ? 'Generate ▲' : ' Loading ...'}</button>
+                <button class="generate_video" id="generate_handler" ${this._isGenerating ? 'disabled' : ''}> ${!this._isGenerating ? 'Generate ▲' : ' Generating ...'}</button>
                 <div id="generate_type" class="disabled">
                     <button id="generate_video" class="generate_v">Generate Video</button>
                     <button id="upload_youtube" class="generate_v">Generate & Upload Youtube</button>
                 </div>
             </div>
             ${this._message ? this._message.getMessage() : ''}
+            
+            <div id="auth_modal" class="modal ${this._isAuthenticationPhase ? '' : 'hidden'}">
+                <div class="modal-content">
+                    <h2>Youtube account authentication</h2>
+                    <a href="${this._authUrl}" target="_blank"> Visit this url  </a>
+                    <br>
+                    <input type="text" id="auth_code" placeholder="Enter authorization code" required>
+                    <div class="modal-actions">
+                        <button id="auth_cancel"  class="cancel_button">Cancel</button>
+                        <button id="auth_submit"  class="accept_button">Submit</button>
+
+                    </div>
+                </div>
+            </div>
+            
+            <div id="upload_modal" class="modal ${this._isDefineVideoElementsPhase ? '' : 'hidden'}">
+                <div class="modal-content">
+                    <h2>Upload to YouTube</h2>
+                    <div class="input-group">
+                        <label for="video_title">Title:</label>
+                        <input type="text" id="video_title" placeholder="Enter video title" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="video_description">Description:</label>
+                        <textarea id="video_description" placeholder="Enter video description" required></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="video_tags">Tags (comma-separated):</label>
+                        <input type="text" id="video_tags" placeholder="tag1, tag2, tag3">
+                    </div>
+                    <div class="modal-actions">
+                        <button id="upload_cancel" class="cancel_button">Cancel</button>
+                        <button id="upload_confirm" class="accept_button">Upload</button>
+                    </div>
+                </div>
+            </div>
+            
             <script>
                 const vscode = acquireVsCodeApi();
                 let generateShown = false;
@@ -344,6 +398,40 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                     generateShown = false;
                     showGenerate();
                 });
+                
+                document.getElementById('auth_submit').addEventListener('click', () => {
+                    const code = document.getElementById('auth_code').value;
+                    vscode.postMessage({ command: 'endAuthentication', data: code });
+                    document.getElementById('auth_modal').classList.add('hidden');
+                });
+                document.getElementById('auth_cancel').addEventListener('click', () => {
+                    vscode.postMessage({ command: 'endAuthentication', data: null });
+                    document.getElementById('auth_modal').classList.add('hidden');
+                });
+                
+                document.getElementById('upload_confirm').addEventListener('click', () => {
+                    const title = document.getElementById('video_title').value;
+                    const description = document.getElementById('video_description').value;
+                    const tags = document.getElementById('video_tags').value.split(',').map(tag => tag.trim());
+                    console.log('title', title);
+                    if (title && description) {
+                        vscode.postMessage({ command: 'confirmUploadYoutube', data: { title, description, tags } });
+                        document.getElementById('upload_modal').classList.add('hidden');
+                    } else {
+                        if (!title) {
+                            document.getElementById('video_title').placeholder = 'Title is required';
+                            document.getElementById('video_title').style.border = '1px solid red';
+                        }  
+                        if (!description) {
+                            document.getElementById('video_description').placeholder = 'Description is required';
+                            document.getElementById('video_description').style.border = '1px solid red';
+                        }
+                    }
+                });
+                document.getElementById('upload_cancel').addEventListener('click', () => {
+                    vscode.postMessage({ command: 'canceUploadYoutube', data: null });
+                    document.getElementById('upload_modal').classList.add('hidden');
+                });
                 document.getElementById('generate_handler').addEventListener('click', () => {
                     generateShown = !generateShown;
                     showGenerate();
@@ -354,64 +442,31 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         </html>`;
     }
 
-    private async handleUploadToYouTube(): Promise<void> {
+    private async handleUploadToYouTube(title: string, description: string, tags: string[]): Promise<void> {
         try {
-            await this.authenticate();
-
-            const userInputs = await this.getUserInputForUpload();
-            if (userInputs) {
-                const { title, description, tags } = userInputs;
-                const videoPath = this.getVideoPath();
-                await uploadVideo(title, description, tags, videoPath);
-                vscode.window.showInformationMessage('Video uploaded successfully.');
-            }
-        } catch (err: any ) {
-            vscode.window.showErrorMessage(`Failed to upload video: ${err.message}`);
+            const videoPath = this.getVideoPath();
+            await uploadVideo(title, description, tags, videoPath);
+            this._message = new VisualizerInfoPythonMessager('Video uploaded successfully');
+        }    catch (err: any ) {
+            this._message = new VisualizerInfoPythonMessager('Error uploading video');
         }
     }
 
-    private async getOAuthTokensWithPopup(): Promise<void> {
-        // Display auth URL to the user and get the code
+    private async startAuthentication(): Promise<void> {
+        this._isAuthenticationPhase = true;
         const authUrl = await getAuthUrlFromServer();
-        const code = await vscode.window.showInputBox({
-            prompt: `Visit this URL and paste the authorization code here: ${authUrl}`,
-            placeHolder: 'Enter authorization code',
-        });
 
-        if (!code) {
-            throw new Error('Authorization code is required to proceed.');
-        }
+        //open in browser
+        this._authUrl = authUrl;
+        vscode.env.openExternal(vscode.Uri.parse(authUrl));
+    }
 
-        // Exchange the code for tokens
+    private async endAuthentication(code : string): Promise<void> {
         const tokens = await exchangeCodeForTokens(code);
         storeTokens(tokens);
+        this._isAuthenticationPhase = false;
     }
 
-    private async getUserInputForUpload(): Promise<{ title: string; description: string; tags: string[] } | undefined> {
-        const title = await vscode.window.showInputBox({ prompt: 'Enter video title' });
-        if (!title) return;
-
-        const description = await vscode.window.showInputBox({ prompt: 'Enter video description' });
-        if (!description) return;
-
-        const tagsInput = await vscode.window.showInputBox({
-            prompt: 'Enter video tags (comma-separated)',
-            placeHolder: 'tag1, tag2, tag3',
-        });
-        const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : [];
-
-        return { title, description, tags };
-    }
-
-
-    private async authenticate(): Promise<void> {
-        if (!tokenExists()) {
-            await this.getOAuthTokensWithPopup();
-        } else {
-            await refreshIfExpired();
-
-        }
-    }
 
     private getVideoPath(): string {
         const name = this._videoData!.name;

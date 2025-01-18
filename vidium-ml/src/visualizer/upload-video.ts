@@ -1,11 +1,10 @@
 import fs from 'fs';
-import path from 'path';
 import { google } from 'googleapis';
 import axios from 'axios';
 
 
 const API_BASE_URL = 'https://dorianbouchard.com'; //
-const TOKEN_PATH = path.resolve('./client_oauth_token.json');
+const TOKEN_PATH = __dirname + '/../../client_oauth_token.json'
 
 export interface OAuthTokens {
     access_token: string;
@@ -103,6 +102,7 @@ export async function exchangeCodeForTokens(code: string): Promise<OAuthTokens> 
 }
 
 export function tokenExists(): boolean {
+    console.log(TOKEN_PATH);
     return fs.existsSync(TOKEN_PATH);
 }
 

@@ -69,7 +69,6 @@ function checkCutsAssetItem(item: AssetItem, accept: ValidationAcceptor): void {
 function isWrongfullyCut(element: AssetItem): boolean{
     if(!isCutable(element) && hasCuts(element.cut_to, element.cut_from))
         console.log("type: ", element.$type, "cut_from :  ", element.cut_from, "cut_to : ", element.cut_to);
-    console.log("test2");
     return !isCutable(element) && hasCuts(element.cut_from, element.cut_to);
 }
 
