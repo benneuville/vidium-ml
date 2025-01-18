@@ -10,3 +10,5 @@ api_sample/video_sample/*
 .idea
 venv
 vidium-ml/src/language-server/generated/*
+vidium-ml/src/client_secrets.json
+vidium-ml/src/client_oauth_token.json
