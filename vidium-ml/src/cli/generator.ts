@@ -223,14 +223,24 @@ function checkSubtitlesOverlap(): void {
 }
 
 function compileTransition(transition: Transition, varName: string, fileNode: CompositeGeneratorNode): void {
+    const duration = (transition.to ?? 1.0) - (transition.from ?? 0);
+    const start = transition.from ?? 0;
+    const color = transition.color ? processColor(transition.color) : "#000000";
     switch (transition.type) {
-        case 'FADE':
-            const duration = (transition.to ?? 1.0) - (transition.from ?? 0);
-            const start = transition.from ?? 0;
-
-            fileNode.append(`${varName} = mv.layer.Rectangle(size=(1920, 1080), color="#000000")`, NL);
+        case 'FADE_IN_OUT':
+            fileNode.append(`${varName} = mv.layer.Rectangle(size=(1920, 1080), color="${color}")`, NL);
             fileNode.append(`tmp = scene.add_layer(${varName}, offset=${start})`, NL);
             fileNode.append(`tmp.opacity.enable_motion().extend([0, ${duration}/2, ${duration}], [0, 1, 0], ['ease_out', 'ease_in'])`, NL);
+            break;
+        case 'FADE_IN':
+            fileNode.append(`${varName} = mv.layer.Rectangle(size=(1920, 1080), color="${color}")`, NL);
+            fileNode.append(`tmp = scene.add_layer(${varName}, offset=${start})`, NL);
+            fileNode.append(`tmp.opacity.enable_motion().extend([0, ${duration}], [1, 0], ['ease_in'])`, NL);
+            break;
+        case 'FADE_OUT':
+            fileNode.append(`${varName} = mv.layer.Rectangle(size=(1920, 1080), color="${color}")`, NL);
+            fileNode.append(`tmp = scene.add_layer(${varName}, offset=${start})`, NL);
+            fileNode.append(`tmp.opacity.enable_motion().extend([0, ${duration}], [0, 1], ['ease_out'])`, NL);
             break;
     }
 }
@@ -387,13 +397,13 @@ function processPosition(elementType: string, varName: string, fileNode: Composi
                 return `(${varName}_width/2, video_height/2)`;
             case 'RIGHT':
                 return `(video_width - ${varName}_width/2 , video_height/2)`;
-            case 'TOP-LEFT':
+            case 'TOP_LEFT':
                 return `(${varName}_width/2,${varName}_height/2)`;
-            case 'TOP-RIGHT':
+            case 'TOP_RIGHT':
                 return `(video_width - ${varName}_width/2,${varName}_height/2)`;
-            case 'BOTTOM-LEFT':
+            case 'BOTTOM_LEFT':
                 return `(${varName}_width/2,video_height - ${varName}_height/2)`
-            case 'BOTTOM-RIGHT':
+            case 'BOTTOM_RIGHT':
                 return `(video_width - ${varName}_width/2,video_height - ${varName}_height/2)`
             default:
                 return '(video_width/2, video_height/2)';

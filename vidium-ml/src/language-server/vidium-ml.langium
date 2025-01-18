@@ -85,62 +85,63 @@ fragment OpacityParam:
 
 // >> TEXT
 Text:
-    'text' text=STRING
+    'text' text=STRING (
     (ColorParam)?
     (SizeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
     (OpacityParam)?
-    (TimeParam)?;
+    (TimeParam)?)*;
 
 // >> CLIP
 Clip:
-    'clip' path=STRING
+    'clip' path=STRING (
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
     (OpacityParam)?
-    (TimeParam);
+    (TimeParam)?)*;
 
 // >> IMAGE
 Image:
-    'image' path=STRING
+    'image' path=STRING (
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (RotateParam)?
     (OpacityParam)?
-    (TimeParam)?;
+    (TimeParam)?)*;
 
 Audio:
-    'audio' path=STRING
-    (TimeParam)?;
+    'audio' path=STRING (
+    (TimeParam)?)*;
 
 Transition:
-    'transition' type=TRANSITION
-    (TimeParam);
+    'transition' type=TRANSITION (
+    (ColorParam)?
+    (TimeParam))*;
 
 // >> SUBTITLE
 Subtitle:
-    'subtitle' text=STRING
+    'subtitle' text=STRING (
     (ColorParam)?
     (SizeParam)?
     (PositionParam | CoordinateParam)?
     (ScaleParam)?
     (OpacityParam)?
-    (TimeParam)?;
+    (TimeParam))*;
 
 Background:
-    'background' color=COLOR
+    'background' color=COLOR (
     (OpacityParam)?
-    (TimeParam)?;
+    (TimeParam)?)*;
 
 // ===========
 //  TERMINALS
 // ============
 
 hidden terminal WS: /\s+/;
-terminal TRANSITION: 'FADE';
+terminal TRANSITION: 'FADE_IN_OUT' | 'FADE_IN' | 'FADE_OUT';
 terminal COLOR: 'RED' | 'BLUE' | 'GREEN' | 'BLACK' | 'WHITE';
 
 terminal fragment DIGIT: /[0-9]/;
@@ -149,7 +150,7 @@ terminal TIME: (DIGIT+ ':' ('0'..'5')? DIGIT ':' ('0'..'5')?  DIGIT ('.' DIGIT (
 
 terminal FLOAT returns number: (DIGIT+ '.' DIGIT+);
 terminal INT returns number: DIGIT+;
-terminal POSITION: /[A-Z]+(-[A-Z]+)?/;
+terminal POSITION: 'TOP_LEFT' | 'TOP_RIGHT' | 'BOTTOM_LEFT' | 'BOTTOM_RIGHT' | 'CENTER' | 'TOP' | 'BOTTOM' | 'LEFT' | 'RIGHT';
 terminal ID: /[_a-zA-Z][\w_]*/;
 
 terminal STRING: /"[^"]*"|'[^']*'/;
