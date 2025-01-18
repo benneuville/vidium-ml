@@ -105,7 +105,7 @@ app.get('/auth/callback', async (req, res) => {
 
         const content = fs.readFileSync(SECRET_PATH, 'utf8');
         const credentials = JSON.parse(content);
-        const oauth2Client = new OAuth2(credentials.web.client_id, credentials.web.client_secret, credentials.web.redirect_uris[0]);
+        const oauth2Client = new OAuth2(credentials.web.client_id, credentials.web.client_secret, credentials.web.redirect_uris[2]);
 
         const { tokens } = await oauth2Client.getToken(code);
         oauth2Client.setCredentials(tokens);
