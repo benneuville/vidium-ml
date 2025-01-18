@@ -7,6 +7,9 @@
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/vidium-ml/out" />
+      <excludeFolder url="file://$MODULE_DIR$/vmlenv" />
+      <excludeFolder url="file://$MODULE_DIR$/vidium-ml/vmlenv" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
