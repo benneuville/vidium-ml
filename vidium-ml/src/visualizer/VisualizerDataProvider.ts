@@ -8,6 +8,12 @@ import { Video } from '../language-server/generated/ast';
 import { VisualizerVideoBuilder } from './VisualizerVideoBuilder';
 import { VisualizerErrorMessager, VisualizerMessager, VisualizerValidationMessager, VisualizerInfoPythonMessager } from './VisualizerMessager';
 import fs from "fs";
+import {
+    exchangeCodeForTokens,
+    getAuthUrlFromServer, refreshIfExpired,
+    storeTokens, tokenExists,
+    uploadVideo
+} from "./upload-video";
 
 
 const execPromise = promisify(exec);
@@ -21,6 +27,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
     private _visualizerBuilder = new VisualizerVideoBuilder();
     private _zoomValue = 100;
     private _isGenerating = false;
+    private _isUploading = false;
     private _message?: VisualizerMessager;
 
     constructor(private readonly context: vscode.ExtensionContext, private services : VidiumMLServices) {
@@ -79,6 +86,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
                 console.log('Uploading to YouTube...');
                 //TODO: Implement YouTube upload
             }
+
         });
 
         vscode.window.onDidChangeActiveTextEditor(async (e) => {
@@ -156,7 +164,7 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
         const vmlEnv = root + 'vmlenv';
         if (!fs.existsSync(vmlEnv)) {
             console.log('Creating vmlenv...');
-            await execPromise('py -m venv vmlenv', { cwd: root });
+            await execPromise('python3 -m venv vmlenv', { cwd: root });
         }
         const pythonExecutable = process.platform === 'win32'
             ? vmlEnv + '/Scripts/python.exe'  // Windows
@@ -344,5 +352,75 @@ export class VisualizerDataProvider implements vscode.WebviewViewProvider, Visua
             </script>
         </body>
         </html>`;
+    }
+
+    private async handleUploadToYouTube(): Promise<void> {
+        try {
+            await this.authenticate();
+
+            const userInputs = await this.getUserInputForUpload();
+            if (userInputs) {
+                const { title, description, tags } = userInputs;
+                const videoPath = this.getVideoPath();
+                await uploadVideo(title, description, tags, videoPath);
+                vscode.window.showInformationMessage('Video uploaded successfully.');
+            }
+        } catch (err: any ) {
+            vscode.window.showErrorMessage(`Failed to upload video: ${err.message}`);
+        }
+    }
+
+    private async getOAuthTokensWithPopup(): Promise<void> {
+        // Display auth URL to the user and get the code
+        const authUrl = await getAuthUrlFromServer();
+        const code = await vscode.window.showInputBox({
+            prompt: `Visit this URL and paste the authorization code here: ${authUrl}`,
+            placeHolder: 'Enter authorization code',
+        });
+
+        if (!code) {
+            throw new Error('Authorization code is required to proceed.');
+        }
+
+        // Exchange the code for tokens
+        const tokens = await exchangeCodeForTokens(code);
+        storeTokens(tokens);
+    }
+
+    private async getUserInputForUpload(): Promise<{ title: string; description: string; tags: string[] } | undefined> {
+        const title = await vscode.window.showInputBox({ prompt: 'Enter video title' });
+        if (!title) return;
+
+        const description = await vscode.window.showInputBox({ prompt: 'Enter video description' });
+        if (!description) return;
+
+        const tagsInput = await vscode.window.showInputBox({
+            prompt: 'Enter video tags (comma-separated)',
+            placeHolder: 'tag1, tag2, tag3',
+        });
+        const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : [];
+
+        return { title, description, tags };
+    }
+
+
+    private async authenticate(): Promise<void> {
+        if (!tokenExists()) {
+            await this.getOAuthTokensWithPopup();
+        } else {
+            await refreshIfExpired();
+
+        }
+    }
+
+    private getVideoPath(): string {
+        const name = this._videoData!.name;
+        const root = this.getRootDirectory();
+        return root + 'generated_video/' + name + '.mp4';
+
+    }
+
+    private getRootDirectory() {
+        return __dirname.replace("\\", '/') + '/../../';
     }
 }
