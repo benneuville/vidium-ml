@@ -146,8 +146,8 @@ terminal ID: /[_a-zA-Z][\w_]*/;
 
 terminal fragment DIGIT: /[0-9]/;
 terminal TIME: (DIGIT+ ':' ('0'..'5')? DIGIT ':' ('0'..'5')?  DIGIT ('.' DIGIT (DIGIT (DIGIT)?)?)? | // HH:MM:SS or HH:MM:SS.MS
-                DIGIT+ ':' ('0'..'5')? DIGIT ('.' DIGIT (DIGIT (DIGIT)?)?)? |                       // MM:SS or MM:SS.MS
-               ('0'..'5')? FLOAT);
+               ('0'..'5') DIGIT ':' ('0'..'5')? DIGIT ('.' DIGIT (DIGIT (DIGIT)?)?)?);                // MM:SS or MM:SS.MS
+
 terminal FLOAT returns number: (DIGIT+ '.' DIGIT+);
 terminal INT returns number: DIGIT+;
 

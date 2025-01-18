@@ -1,5 +1,5 @@
 video named videoScenarioBackground {
-    background BLUE lasts for 5
+    background BLUE lasts for 5.0
     background RED lasts for 5
     transition FADE start 4.5 end 5.5
     text "size" lasts for 5 size 50
