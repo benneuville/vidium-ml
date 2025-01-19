@@ -287,12 +287,12 @@ export class VisualizerVideoBuilder {
             let size = this._absoluteSizeOfDefinedAssets.get(ref);
             if(asset && size) {
                 left = left + this.startAssetElement(asset) + size;
-            }
-            if(element.before) {
-                left -= element.before * this.__ruler2_space * this.__ruler_x;
-            }
-            else if(element.after) {
-                left += element.after * this.__ruler2_space * this.__ruler_x;
+                if(element.before) {
+                    left -= (element.before) * this.__ruler2_space * this.__ruler_x + size;
+                }
+                else {
+                    left += (element.after || 0) * this.__ruler2_space * this.__ruler_x;
+                }
             }
         }
         return left;

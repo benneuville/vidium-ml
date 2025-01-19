@@ -4,6 +4,6 @@ video named aliceCast {
     define s1 as subtitle "subbb" start after t1 lasts for 00:10
     subtitle "suuubb 2" start 00:30 after s1 lasts for 00:10
     define clip1b as clip "../api_sample/video_sample/2min30.mp4" start after clip1a cut from 02:01 to 02:21.223
-    subtitle "before" start 00:5 before clip1b lasts for 00:15
+    subtitle "before" start 00:05 before clip1b lasts for 00:15
     text "Thank for watching" color WHITE size 50 start after clip1b lasts for 00:10
 }
